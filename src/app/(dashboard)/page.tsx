@@ -1,31 +1,15 @@
+import { NewTaskForm } from "@/components/features/NewTaskForm";
 import { TaskCard } from "@/components/features/TaskCard";
+import { prisma } from "@/lib/prisma";
+import { Task } from "@/types";
 
-const MOCK_TASKS = [
-  {
-    id: "1",
-    time: "08:00 - 09:30",
-    title: "Deep Work: UI Design",
-    description:
-      "Focar na tipografia do projeto e nos contrastes do dark mode.",
-    category: "trabalho",
-  },
-  {
-    id: "2",
-    time: "10:00 - 11:00",
-    title: "Treino de Corrida",
-    description: "Corrida leve de 5km para manter o ritmo.",
-    category: "saude",
-  },
-  {
-    id: "3",
-    time: "14:00 - 16:00",
-    title: "Estudos: UX Engineering",
-    description: "Revisar conceitos de animações fluidas e micro-interações.",
-    category: "estudo",
-  },
-];
+export default async function DashboardPage() {
+  const tasks = await prisma.task.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
-export default function DashboardPage() {
   return (
     <section className="mt-12">
       <header className="mb-12">
@@ -33,14 +17,35 @@ export default function DashboardPage() {
           Rotina Diária
         </h2>
         <p className="opacity-50 font-mono text-sm uppercase">
-          Quarta-feira, 22 de Abril
+          {new Date().toLocaleDateString("pt-BR", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+          })}
         </p>
       </header>
 
+      <NewTaskForm />
+
       <div className="relative border-l-2 border-white/5 pl-8 ml-4">
-        {MOCK_TASKS.map((task) => (
-          <TaskCard key={task.id} task={task} />
-        ))}
+        {tasks.length === 0 ? (
+          <p className="text-white/30 italic">
+            A rotina de hoje está limpa. Adicione um fluxo acima.
+          </p>
+        ) : (
+          tasks.map((task: Task) => (
+            <TaskCard
+              key={task.id}
+              task={{
+                id: task.id,
+                title: task.title,
+                time: "00:00",
+                description: task.description || "Sem detalhes adicionais.",
+                category: task.category,
+              }}
+            />
+          ))
+        )}
       </div>
     </section>
   );
