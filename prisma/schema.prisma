@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id         String   @id @default(cuid())
+  name       String
+  username   String   @unique
+  pin        String
+  tasks      Task[]
+  sharedWith SharedAccess[]
+  createdAt  DateTime @default(now())
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  startTime   DateTime
+  endTime     DateTime
+  isCompleted Boolean  @default(false)
+  category    String   @default("geral")
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model SharedAccess {
+  id        String  @id @default(cuid())
+  ownerId   String
+  viewerEmail String?
+  acessToken String  @unique
+  expireAt   DateTime?
+  owner     User    @relation(fields: [ownerId], references: [id])
+  createdAt  DateTime @default(now())
+}
