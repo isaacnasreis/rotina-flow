@@ -1,7 +1,14 @@
 "use client";
+import { deleteTask, toggleTaskStatus } from "@/actions/task";
 import { clsx } from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight, Clock } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronRight,
+  Circle,
+  Clock,
+  Trash2,
+} from "lucide-react";
 import { useState } from "react";
 
 interface TaskProps {
@@ -11,6 +18,7 @@ interface TaskProps {
     time: string;
     description: string;
     category: string;
+    isCompleted: boolean;
   };
 }
 
@@ -20,19 +28,47 @@ export function TaskCard({ task }: TaskProps) {
   return (
     <motion.div
       layout
-      onClick={() => setIsOpen(!isOpen)}
       className={clsx(
         "relative cursor-pointer overflow-hidden transition-all duration-500",
+        task.isCompleted ? "opacity-40 grayscale-[0.5]" : "opacity-100",
         isOpen
           ? "bg-purple-900/20 border-2 border-purple-500/50 my-8 p-8 rounded-3xl"
           : "bg-white/5 border border-white/10 hover:border-white/30 my-4 p-5 rounded-2xl",
       )}
     >
-      <div className="flex items-center justify-between">
+      {task.isCompleted && (
+        <motion.div
+          layoutId="check"
+          initial={{ width: 0 }}
+          animate={{ width: "100%" }}
+          className="absolute top-1/2 left-0 h-0.5 bg-purple-500 z-10 pointer-events-none"
+          style={{ originX: 0 }}
+        />
+      )}
+
+      <div
+        className="flex items-center justify-between"
+        onClick={() => setIsOpen(!isOpen)}
+      >
         <div className="flex items-center gap-4">
-          <motion.div layout className="p-2 bg-white/5 rounded-full">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleTaskStatus(task.id, task.isCompleted);
+            }}
+            className="z-20 p-2 hover:scale-110 transition-transform"
+          >
+            {task.isCompleted ? (
+              <CheckCircle2 size={24} className="text-green-400" />
+            ) : (
+              <Circle size={24} className="text-white/20" />
+            )}
+          </button>
+
+          <div className="p-2 bg-white/5 rounded-full">
             <Clock size={18} className="text-purple-400" />
-          </motion.div>
+          </div>
+
           <div>
             <motion.span
               layout
@@ -40,13 +76,22 @@ export function TaskCard({ task }: TaskProps) {
             >
               {task.time}
             </motion.span>
-            <motion.h3 layout className="text-lg font-bold block leading-tight">
+            <h3 className="text-lg font-bold block leading-tight">
               {task.title}
-            </motion.h3>
+            </h3>
           </div>
         </div>
 
-        <motion.div layout>
+        <motion.div layout className="flex items-center gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (confirm("Eliminar este bloco do fluxo?")) deleteTask(task.id);
+            }}
+            className="p-2 opacity-20 group-hover:opacity-100 hover:text-red-500 transition-all"
+          >
+            <Trash2 size={16} />
+          </button>
           {isOpen ? (
             <ChevronRight className="rotate-90 opacity-20" />
           ) : (
@@ -67,10 +112,10 @@ export function TaskCard({ task }: TaskProps) {
               "{task.description}"
             </p>
 
-            <div className="mt-4">
-              <button className="bg-purple-600 hover:bg-purple-500 text-white px-6 py-2 rounded-full font-bold text-sm transition-colors">
-                Concluir Tarefa
-              </button>
+            <div className="mt-8 flex justify-end">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 bg-white/10 rounded-full">
+                Categoria: {task.category}
+              </span>
             </div>
           </motion.div>
         )}

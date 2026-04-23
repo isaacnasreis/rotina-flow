@@ -15,9 +15,11 @@ export async function createTask(formData: FormData) {
 
   if (!user) {
     user = await prisma.user.create({
-      name: "Admin Isaac",
-      username: "adminisaac",
-      pin: "1234",
+      data: {
+        name: "Admin Isaac",
+        username: "adminisaac",
+        pin: "1234",
+      },
     });
   }
 
@@ -32,5 +34,20 @@ export async function createTask(formData: FormData) {
     },
   });
 
+  revalidatePath("/");
+}
+
+export async function toggleTaskStatus(id: string, currentStatus: boolean) {
+  await prisma.task.update({
+    where: { id },
+    data: { isCompleted: !currentStatus },
+  });
+  revalidatePath("/");
+}
+
+export async function deleteTask(id: string) {
+  await prisma.task.delete({
+    where: { id },
+  });
   revalidatePath("/");
 }

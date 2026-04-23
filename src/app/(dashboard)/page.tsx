@@ -1,7 +1,6 @@
 import { NewTaskForm } from "@/components/features/NewTaskForm";
 import { TaskCard } from "@/components/features/TaskCard";
 import { prisma } from "@/lib/prisma";
-import { Task } from "@/types";
 
 export default async function DashboardPage() {
   const tasks = await prisma.task.findMany({
@@ -33,7 +32,7 @@ export default async function DashboardPage() {
             A rotina de hoje está limpa. Adicione um fluxo acima.
           </p>
         ) : (
-          tasks.map((task: Task) => (
+          tasks.map((task) => (
             <TaskCard
               key={task.id}
               task={{
@@ -42,6 +41,7 @@ export default async function DashboardPage() {
                 time: "00:00",
                 description: task.description || "Sem detalhes adicionais.",
                 category: task.category,
+                isCompleted: task.isCompleted,
               }}
             />
           ))

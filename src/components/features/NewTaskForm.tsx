@@ -11,7 +11,7 @@ export function NewTaskForm() {
   return (
     <div className="mb-12 relative">
       <AnimatePresence mode="wait">
-        {isOpen ? (
+        {!isOpen ? (
           <motion.button
             key="button"
             initial={{ opacity: 0, y: 20 }}
@@ -35,8 +35,14 @@ export function NewTaskForm() {
             className="bg-[#111] border-2 border-purple-500/30 p-6 rounded-3xl overflow-hidden"
           >
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-black italic uppercase text-xl">Novo Bloco de Rotina</h3>
-              <button type="button" onClick={() => setIsOpen(false)} className="opacity-50 hover:opacity-100">
+              <h3 className="font-black italic uppercase text-xl">
+                Novo Bloco de Rotina
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="opacity-50 hover:opacity-100"
+              >
                 <X size={20} />
               </button>
             </div>
