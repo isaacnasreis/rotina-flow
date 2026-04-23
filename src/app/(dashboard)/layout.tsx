@@ -1,5 +1,6 @@
 import { logout } from "@/actions/auth";
-import { LogOut, Share2 } from "lucide-react";
+import { ShareButton } from "@/components/features/ShareButton";
+import { LogOut } from "lucide-react";
 import React from "react";
 
 export default function DashboardLayout({
@@ -25,12 +26,7 @@ export default function DashboardLayout({
             </div>
 
             <div className="flex items-center gap-4 border-l border-white/10 pl-6">
-              <button
-                className="text-white/50 hover:text-purple-400 transition-colors cursor-pointer"
-                title="Compartilhar Rotina"
-              >
-                <Share2 size={18} />
-              </button>
+              <ShareButton />
               <form action={logout} className="flex items-center">
                 <button
                   type="submit"

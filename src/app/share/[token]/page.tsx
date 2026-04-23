@@ -4,25 +4,31 @@ import { notFound } from "next/navigation";
 
 interface SharePageProps {
   params: Promise<{
-    username: string;
+    token: string;
   }>;
 }
 
 export default async function SharedRoutinePage({ params }: SharePageProps) {
   const resolvedParams = await params;
 
-  const user = await prisma.user.findUnique({
-    where: { username: resolvedParams.username },
+  const sharedAccess = await prisma.sharedAccess.findUnique({
+    where: { accessToken: resolvedParams.token },
     include: {
-      tasks: {
-        orderBy: { createdAt: "desc" },
+      owner: {
+        include: {
+          tasks: {
+            orderBy: { createdAt: "desc" },
+          },
+        },
       },
     },
   });
 
-  if (!user) {
+  if (!sharedAccess) {
     notFound();
   }
+
+  const user = sharedAccess.owner;
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("pt-BR", {

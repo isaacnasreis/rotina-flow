@@ -39,7 +39,7 @@ model SharedAccess {
   id        String  @id @default(cuid())
   ownerId   String
   viewerEmail String?
-  acessToken String  @unique
+  accessToken String  @unique
   expireAt   DateTime?
   owner     User    @relation(fields: [ownerId], references: [id])
   createdAt  DateTime @default(now())
