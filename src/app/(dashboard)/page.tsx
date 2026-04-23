@@ -19,6 +19,13 @@ export default async function DashboardPage() {
     },
   });
 
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <section className="mt-12">
       <header className="mb-12">
@@ -48,7 +55,7 @@ export default async function DashboardPage() {
               task={{
                 id: task.id,
                 title: task.title,
-                time: "00:00",
+                time: `${formatTime(task.startTime)} - ${formatTime(task.endTime)}`,
                 description: task.description || "Sem detalhes adicionais.",
                 category: task.category,
                 isCompleted: task.isCompleted,

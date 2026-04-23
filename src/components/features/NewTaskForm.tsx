@@ -58,14 +58,23 @@ export function NewTaskForm() {
 
               <div className="flex gap-4">
                 <input
-                  type="text"
-                  name="time"
-                  placeholder="EX: 14:00 - 16:00"
-                  className="w-1/3 bg-black/50 border border-white/10 p-4 rounded-xl font-mono text-sm placeholder:text-white/20 focus:outline-none focus:border-purple-500 transition-colors"
+                  type="time"
+                  name="startTime"
+                  required
+                  className="w-1/4 bg-black/50 border border-white/10 p-4 rounded-xl font-mono text-sm placeholder:text-white/20 focus:outline-none focus:border-purple-500 transition-colors"
+                />
+                <span className="flex items-center text-white/30 font-bold">
+                  -
+                </span>
+                <input
+                  type="time"
+                  name="endTime"
+                  required
+                  className="w-1/4 bg-black/50 border border-white/10 p-4 rounded-xl font-mono text-sm placeholder:text-white/20 focus:outline-none focus:border-purple-500 transition-colors"
                 />
                 <select
                   name="category"
-                  className="w-2/3 bg-black/50 border border-white/10 p-4 rounded-xl uppercase text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                  className="w-full bg-black/50 border border-white/10 p-4 rounded-xl uppercase text-sm focus:outline-none focus:border-purple-500 transition-colors"
                 >
                   <option value="trabalho">Trabalho / Código</option>
                   <option value="estudo">Estudos / Universidade</option>

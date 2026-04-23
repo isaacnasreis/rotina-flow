@@ -24,6 +24,13 @@ export default async function SharedRoutinePage({ params }: SharePageProps) {
     notFound();
   }
 
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-slate-100 p-6">
       <main className="max-w-4xl mx-auto mt-12 pb-24">
@@ -55,7 +62,7 @@ export default async function SharedRoutinePage({ params }: SharePageProps) {
                   task={{
                     id: task.id,
                     title: task.title,
-                    time: "00:00",
+                    time: `${formatTime(task.startTime)} - ${formatTime(task.endTime)}`,
                     description: task.description || "Sem detalhes adicionais.",
                     category: task.category,
                     isCompleted: task.isCompleted,
