@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
 export async function createTask(formData: FormData) {
   const title = formData.get("title") as string;
@@ -11,17 +12,10 @@ export async function createTask(formData: FormData) {
 
   if (!title) return { error: "O título é obrigatório." };
 
-  let user = await prisma.user.findFirst();
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("flow_session")?.value;
 
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        name: "Admin Isaac",
-        username: "adminisaac",
-        pin: "1234",
-      },
-    });
-  }
+  if (!userId) throw new Error("Não autorizado");
 
   await prisma.task.create({
     data: {
@@ -30,7 +24,7 @@ export async function createTask(formData: FormData) {
       startTime: new Date(),
       endTime: new Date(),
       category: category || "geral",
-      userId: user.id,
+      userId: userId,
     },
   });
 

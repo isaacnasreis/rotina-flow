@@ -41,7 +41,7 @@ export function NewTaskForm() {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="opacity-50 hover:opacity-100"
+                className="opacity-50 hover:opacity-100 cursor-pointer"
               >
                 <X size={20} />
               </button>
@@ -83,7 +83,7 @@ export function NewTaskForm() {
 
               <button
                 type="submit"
-                className="w-full bg-purple-600 hover:bg-purple-500 text-white font-black uppercase tracking-widest py-4 rounded-xl transition-colors"
+                className="w-full cursor-pointer bg-purple-600 hover:bg-purple-500 text-white font-black uppercase tracking-widest py-4 rounded-xl transition-colors"
               >
                 Registrar no Banco
               </button>

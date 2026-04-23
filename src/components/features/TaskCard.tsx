@@ -56,7 +56,7 @@ export function TaskCard({ task }: TaskProps) {
               e.stopPropagation();
               toggleTaskStatus(task.id, task.isCompleted);
             }}
-            className="z-20 p-2 hover:scale-110 transition-transform"
+            className="z-20 p-2 hover:scale-110 transition-transform cursor-pointer"
           >
             {task.isCompleted ? (
               <CheckCircle2 size={24} className="text-green-400" />
@@ -88,7 +88,7 @@ export function TaskCard({ task }: TaskProps) {
               e.stopPropagation();
               if (confirm("Eliminar este bloco do fluxo?")) deleteTask(task.id);
             }}
-            className="p-2 opacity-20 group-hover:opacity-100 hover:text-red-500 transition-all"
+            className="p-2 opacity-20 group-hover:opacity-100 hover:text-red-500 transition-all cursor-pointer"
           >
             <Trash2 size={16} />
           </button>

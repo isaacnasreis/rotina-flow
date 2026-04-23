@@ -1,9 +1,19 @@
 import { NewTaskForm } from "@/components/features/NewTaskForm";
 import { TaskCard } from "@/components/features/TaskCard";
 import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("flow_session")?.value;
+
+  if (!userId) {
+    redirect("/login");
+  }
+
   const tasks = await prisma.task.findMany({
+    where: { userId },
     orderBy: {
       createdAt: "desc",
     },
