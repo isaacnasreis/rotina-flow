@@ -1,3 +1,5 @@
+import { logout } from "@/actions/auth";
+import { LogOut, Share2 } from "lucide-react";
 import React from "react";
 
 export default function DashboardLayout({
@@ -11,11 +13,31 @@ export default function DashboardLayout({
         <h1 className="text-2xl font-black tracking-tighter uppercase italic">
           Flow <span className="text-purple-500">State</span>
         </h1>
-        <div className="flex gap-4 items-center">
-          <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-xs font-mono opacity-50 uppercase tracking-widest">
-            Live Sync
-          </span>
+        <div className="flex gap-6 items-center">
+          <div className="flex gap-2 items-center">
+            <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+            <span className="text-xs font-mono opacity-50 uppercase tracking-widest">
+              Live Sync
+            </span>
+          </div>
+
+          <div className="flex items-center gap-4 border-l border-white/10 pl-6">
+            <button
+              className="text-white/50 hover:text-purple-400 transition-colors cursor-pointer"
+              title="Compartilhar Rotina"
+            >
+              <Share2 size={18} />
+            </button>
+            <form action={logout} className="flex items-center">
+              <button
+                type="submit"
+                className="text-white/50 hover:text-red-400 transition-colors cursor-pointer"
+                title="Desconectar"
+              >
+                <LogOut size={18} />
+              </button>
+            </form>
+          </div>
         </div>
       </nav>
 

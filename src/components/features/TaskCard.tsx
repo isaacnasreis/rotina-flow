@@ -20,9 +20,10 @@ interface TaskProps {
     category: string;
     isCompleted: boolean;
   };
+  isReadOnly?: boolean;
 }
 
-export function TaskCard({ task }: TaskProps) {
+export function TaskCard({ task, isReadOnly = false }: TaskProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -51,19 +52,29 @@ export function TaskCard({ task }: TaskProps) {
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center gap-4">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleTaskStatus(task.id, task.isCompleted);
-            }}
-            className="z-20 p-2 hover:scale-110 transition-transform cursor-pointer"
-          >
-            {task.isCompleted ? (
-              <CheckCircle2 size={24} className="text-green-400" />
-            ) : (
-              <Circle size={24} className="text-white/20" />
-            )}
-          </button>
+          {isReadOnly ? (
+            <div className="z-20 p-2">
+              {task.isCompleted ? (
+                <CheckCircle2 size={24} className="text-green-400/50" />
+              ) : (
+                <Circle size={24} className="text-white/10" />
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleTaskStatus(task.id, task.isCompleted);
+              }}
+              className="z-20 p-2 hover:scale-110 transition-transform"
+            >
+              {task.isCompleted ? (
+                <CheckCircle2 size={24} className="text-green-400" />
+              ) : (
+                <Circle size={24} className="text-white/20" />
+              )}
+            </button>
+          )}
 
           <div className="p-2 bg-white/5 rounded-full">
             <Clock size={18} className="text-purple-400" />
@@ -83,15 +94,18 @@ export function TaskCard({ task }: TaskProps) {
         </div>
 
         <motion.div layout className="flex items-center gap-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (confirm("Eliminar este bloco do fluxo?")) deleteTask(task.id);
-            }}
-            className="p-2 opacity-20 group-hover:opacity-100 hover:text-red-500 transition-all cursor-pointer"
-          >
-            <Trash2 size={16} />
-          </button>
+          {!isReadOnly && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (confirm("Eliminar este bloco do fluxo?"))
+                  deleteTask(task.id);
+              }}
+              className="p-2 opacity-20 group-hover:opacity-100 hover:text-red-500 transition-all cursor-pointer"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
           {isOpen ? (
             <ChevronRight className="rotate-90 opacity-20" />
           ) : (
