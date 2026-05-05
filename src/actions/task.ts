@@ -53,6 +53,7 @@ export async function createTask(formData: FormData) {
   });
 
   revalidatePath("/");
+  return { success: "Bloco injetado no fluxo." };
 }
 
 export async function toggleTaskStatus(id: string, currentStatus: boolean) {
@@ -61,6 +62,7 @@ export async function toggleTaskStatus(id: string, currentStatus: boolean) {
     data: { isCompleted: !currentStatus },
   });
   revalidatePath("/");
+  return { success: currentStatus ? "Bloco restaurado." : "Bloco concluído." };
 }
 
 export async function deleteTask(id: string) {
@@ -68,4 +70,49 @@ export async function deleteTask(id: string) {
     where: { id },
   });
   revalidatePath("/");
+  return { success: "Bloco eliminado." };
+}
+
+export async function updateTask(id: string, formData: FormData) {
+  const title = formData.get("title") as string;
+  const description = formData.get("description") as string;
+  const startTimeStr = formData.get("startTime") as string;
+  const endTimeStr = formData.get("endTime") as string;
+
+  if (!title) return { error: "O título é obrigatório." };
+  if (!startTimeStr || !endTimeStr) {
+    return { error: "Os horários são obrigatórios." };
+  }
+
+  const now = new Date();
+  const [startHour, startMin] = startTimeStr.split(":").map(Number);
+  const startDate = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    startHour,
+    startMin,
+  );
+
+  const [endHour, endMin] = endTimeStr.split(":").map(Number);
+  const endDate = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    endHour,
+    endMin,
+  );
+
+  await prisma.task.update({
+    where: { id },
+    data: {
+      title,
+      description,
+      startTime: startDate,
+      endTime: endDate,
+    },
+  });
+
+  revalidatePath("/");
+  return { success: "Bloco atualizado com sucesso." };
 }

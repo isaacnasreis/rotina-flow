@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "Sistema experimental de rotinas para o dia a dia",
 };
 
+import { Toaster } from "@/components/ui/Toaster";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -13,7 +15,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className="antialiased bg-[#0a0a0a]">{children}</body>
+      <body className="antialiased bg-[#0a0a0a]">
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }

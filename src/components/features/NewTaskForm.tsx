@@ -4,6 +4,7 @@ import { createTask } from "@/actions/task";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export function NewTaskForm() {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,8 +30,13 @@ export function NewTaskForm() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             action={async (formData) => {
-              await createTask(formData);
-              setIsOpen(false);
+              const result = await createTask(formData);
+              if (result?.error) {
+                toast.error(result.error);
+              } else if (result?.success) {
+                toast.success(result.success);
+                setIsOpen(false);
+              }
             }}
             className="bg-[#111] border-2 border-purple-500/30 p-6 rounded-3xl overflow-hidden"
           >
@@ -51,9 +57,9 @@ export function NewTaskForm() {
               <input
                 type="text"
                 name="title"
-                placeholder="TÍTULO DA TEREFA"
+                placeholder="Título da Tarefa"
                 required
-                className="w-full bg-black/50 border border-white/10 p-4 rounded-xl font-bold uppercase placeholder:text-white/20 focus:outline-none focus:border-purple-500 transition-colors"
+                className="w-full bg-black/50 border border-white/10 p-4 rounded-xl font-bold placeholder:text-white/20 focus:outline-none focus:border-purple-500 transition-colors"
               />
 
               <div className="flex gap-4">

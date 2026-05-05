@@ -13,10 +13,20 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
   const tasks = await prisma.task.findMany({
-    where: { userId },
+    where: { 
+      userId,
+      startTime: {
+        gte: startOfDay,
+        lte: endOfDay,
+      }
+    },
     orderBy: {
-      createdAt: "desc",
+      startTime: "asc",
     },
   });
 
@@ -58,7 +68,9 @@ export default async function DashboardPage() {
                   id: task.id,
                   title: task.title,
                   time: `${formatTime(task.startTime)} - ${formatTime(task.endTime)}`,
-                  description: task.description || "Sem detalhes adicionais.",
+                  startTimeStr: formatTime(task.startTime),
+                  endTimeStr: formatTime(task.endTime),
+                  description: task.description || "",
                   category: task.category,
                   isCompleted: task.isCompleted,
                 }}
