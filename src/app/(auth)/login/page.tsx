@@ -1,6 +1,7 @@
 "use client";
 
 import { login } from "@/actions/auth";
+import { Logo } from "@/components/ui/Logo";
 import { motion } from "framer-motion";
 import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
@@ -30,11 +31,9 @@ export default function LoginPage() {
         transition={{ duration: 0.8, delay: 0.2 }}
         className="w-full max-w-md relative z-10"
       >
-        <div className="mb-12 text-center">
-          <h1 className="text-5xl font-black tracking-tighter uppercase italic mb-2 text-white">
-            Flow <span className="text-purple-500">State</span>
-          </h1>
-          <p className="font-mono text-xs opacity-50 uppercase tracking-widest text-white">
+        <div className="mb-12 flex flex-col items-center text-center">
+          <Logo size="lg" className="mb-2" />
+          <p className="font-mono text-xs opacity-50 uppercase tracking-widest text-white mt-1">
             Acesso Restrito ao Fluxo
           </p>
         </div>

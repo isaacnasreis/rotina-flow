@@ -3,7 +3,8 @@
 import { TaskCard } from "./TaskCard";
 import { TaskListWrapper } from "@/components/ui/TaskListWrapper";
 import { createBlock, deleteBlock } from "@/actions/block";
-import { Plus, X, Loader2 } from "lucide-react";
+import { completeAllTasks, deleteAllTasks } from "@/actions/task";
+import { Plus, X, Loader2, CheckCircle2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { clsx } from "clsx";
 import { NewTaskForm } from "./NewTaskForm";
@@ -17,6 +18,8 @@ export function DashboardBlocks({ tasks, blocks }: { tasks: any[], blocks: any[]
 
   const [isDeleting, startDeletingTransition] = useTransition();
   const [isCreating, startCreatingTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
+  const [isConfirmingDeleteAll, setIsConfirmingDeleteAll] = useState(false);
 
   const filteredTasks = tasks.filter((t: any) =>
     activeTab === "geral" ? !t.blockId : t.blockId === activeTab
@@ -99,6 +102,33 @@ export function DashboardBlocks({ tasks, blocks }: { tasks: any[], blocks: any[]
 
       <NewTaskForm blockId={activeTab} />
 
+      {filteredTasks.length > 0 && (
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={() => {
+              startTransition(async () => {
+                const res = await completeAllTasks();
+                if (res.success) toast.success(res.success);
+                else if (res.error) toast.error(res.error);
+              });
+            }}
+            disabled={isPending}
+            className="cursor-pointer px-4 py-2 bg-green-500/10 hover:bg-green-500 hover:text-black border border-green-500/20 text-green-400 rounded-xl transition-all font-bold flex items-center gap-1.5 text-xs uppercase tracking-wider font-mono"
+          >
+            {isPending ? <Loader2 className="animate-spin" size={12} /> : <CheckCircle2 size={12} />}
+            Concluir Tudo
+          </button>
+          <button
+            onClick={() => setIsConfirmingDeleteAll(true)}
+            disabled={isPending}
+            className="cursor-pointer px-4 py-2 bg-red-500/10 hover:bg-red-500 hover:text-white border border-red-500/20 text-red-400 rounded-xl transition-all font-bold flex items-center gap-1.5 text-xs uppercase tracking-wider font-mono"
+          >
+            <Trash2 size={12} />
+            Limpar Rotina
+          </button>
+        </div>
+      )}
+
       <div className="relative border-l-2 border-white/5 pl-8 ml-4 mt-8">
         <TaskListWrapper>
           {filteredTasks.length === 0 ? (
@@ -147,6 +177,53 @@ export function DashboardBlocks({ tasks, blocks }: { tasks: any[], blocks: any[]
                   disabled={isDeleting}
                   onClick={() => setBlockToDelete(null)}
                   className="cursor-pointer px-6 py-2 bg-white/10 text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors text-sm font-bold"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {isConfirmingDeleteAll && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center gap-4 p-8 bg-[#0e0e0e] border border-red-500/30 rounded-2xl max-w-sm mx-4 shadow-[0_0_50px_rgba(239,68,68,0.15)] relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-red-500 to-transparent" />
+              <div className="h-12 w-12 bg-red-500/10 text-red-400 rounded-full flex items-center justify-center mb-2 border border-red-500/20">
+                <Trash2 size={22} />
+              </div>
+              <p className="text-white font-black text-xl uppercase tracking-wider italic font-mono text-center">Eliminar toda a rotina?</p>
+              <p className="text-white/60 text-sm text-center font-mono leading-relaxed">
+                Todas as tarefas de hoje para este usuário serão excluídas permanentemente. Esta ação não pode ser desfeita.
+              </p>
+              <div className="flex gap-3 w-full mt-4">
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => {
+                    startTransition(async () => {
+                      const res = await deleteAllTasks();
+                      if (res?.success) toast.success(res.success);
+                      else if (res?.error) toast.error(res.error);
+                      setIsConfirmingDeleteAll(false);
+                    });
+                  }}
+                  className="cursor-pointer flex-1 py-3 bg-red-600 hover:bg-red-500 text-white disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all text-xs font-black uppercase tracking-wider font-mono flex items-center justify-center gap-2"
+                >
+                  {isPending && <Loader2 className="animate-spin" size={14} />}
+                  Confirmar
+                </button>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => setIsConfirmingDeleteAll(false)}
+                  className="cursor-pointer flex-1 py-3 bg-white/5 border border-white/10 text-white/75 hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all text-xs font-black uppercase tracking-wider font-mono"
                 >
                   Cancelar
                 </button>

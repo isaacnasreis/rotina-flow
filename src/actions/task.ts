@@ -4,6 +4,21 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
+const OFFENSIVE_WORDS = [
+  "porra", "caralho", "puta", "merda", "foder", "foda", "bosta", "viado", "corno", "fdp",
+  "filho da puta", "arrombado", "otario", "otário", "imbecil", "retardado"
+];
+
+function hasOffensiveContent(text: string): boolean {
+  if (!text) return false;
+  const normalized = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // remove acentos
+  return OFFENSIVE_WORDS.some(word => {
+    const wordNormalized = word.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const regex = new RegExp(`\\b${wordNormalized}\\b`, "i");
+    return regex.test(normalized) || normalized.includes(wordNormalized + "s");
+  });
+}
+
 export async function createTask(formData: FormData) {
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
@@ -18,12 +33,33 @@ export async function createTask(formData: FormData) {
     return { error: "Os horários de início e fim são obrigatórios." };
   }
 
+  if (hasOffensiveContent(title) || hasOffensiveContent(description)) {
+    return { error: "O conteúdo contém termos ofensivos não permitidos." };
+  }
+
   const cookieStore = await cookies();
   const userId = cookieStore.get("flow_session")?.value;
 
   if (!userId) throw new Error("Não autorizado");
 
   const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+  const todayTasksCount = await prisma.task.count({
+    where: {
+      userId,
+      startTime: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+    },
+  });
+
+  if (todayTasksCount >= 15) {
+    return { error: "Limite diário de 15 tarefas atingido para este usuário." };
+  }
+
   const [startHour, startMin] = startTimeStr.split(":").map(Number);
   const startDate = new Date(
     now.getFullYear(),
@@ -144,4 +180,51 @@ export async function updateTask(id: string, formData: FormData) {
 
   revalidatePath("/");
   return { success: "Bloco atualizado com sucesso." };
+}
+
+export async function completeAllTasks() {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("flow_session")?.value;
+  if (!userId) return { error: "Não autorizado" };
+
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+  await prisma.task.updateMany({
+    where: {
+      userId,
+      startTime: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+    },
+    data: { isCompleted: true },
+  });
+
+  revalidatePath("/");
+  return { success: "Todos os fluxos foram concluídos." };
+}
+
+export async function deleteAllTasks() {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("flow_session")?.value;
+  if (!userId) return { error: "Não autorizado" };
+
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+  await prisma.task.deleteMany({
+    where: {
+      userId,
+      startTime: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+    },
+  });
+
+  revalidatePath("/");
+  return { success: "Todos os fluxos foram eliminados." };
 }
