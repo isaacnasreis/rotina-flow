@@ -2,6 +2,8 @@
 
 import { login } from "@/actions/auth";
 import { motion } from "framer-motion";
+import { useFormStatus } from "react-dom";
+import { Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   return (
@@ -68,14 +70,30 @@ export default function LoginPage() {
             />
           </div>
 
-          <button
-            type="submit"
-            className="w-full cursor-pointer bg-purple-600 hover:bg-purple-500 text-white font-black uppercase tracking-widest py-4 rounded-xl transition-colors mt-4"
-          >
-            Sincronizar
-          </button>
+          <SubmitButton />
         </form>
       </motion.div>
     </div>
+  );
+}
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full cursor-pointer bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black uppercase tracking-widest py-4 rounded-xl transition-colors mt-4 flex justify-center items-center gap-2"
+    >
+      {pending ? (
+        <>
+          <Loader2 className="animate-spin" size={20} />
+          Sincronizando...
+        </>
+      ) : (
+        "Sincronizar"
+      )}
+    </button>
   );
 }

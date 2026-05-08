@@ -8,8 +8,9 @@ import {
   Circle,
   Clock,
   Trash2,
+  Loader2,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { SmartTimeInput } from "./SmartTimeInput";
@@ -34,6 +35,8 @@ export function TaskCard({ task, isReadOnly = false }: TaskProps) {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [currentTag, setCurrentTag] = useState(task.category);
+  const [isPendingToggle, startToggleTransition] = useTransition();
+  const [isDeleting, startDeleteTransition] = useTransition();
 
   useEffect(() => {
     setIsMounted(true);
@@ -59,9 +62,9 @@ export function TaskCard({ task, isReadOnly = false }: TaskProps) {
       style={
         isOpen && !task.isCompleted
           ? {
-              background: `radial-gradient(circle at top right, ${tagData.hex}, transparent 60%), rgba(10,10,10,0.6)`,
-              backdropFilter: "blur(16px)",
-            }
+            background: `radial-gradient(circle at top right, ${tagData.hex}, transparent 60%), rgba(10,10,10,0.6)`,
+            backdropFilter: "blur(16px)",
+          }
           : {}
       }
     >
@@ -91,14 +94,19 @@ export function TaskCard({ task, isReadOnly = false }: TaskProps) {
           ) : (
             <button
               type="button"
-              onClick={async (e) => {
+              disabled={isPendingToggle}
+              onClick={(e) => {
                 e.stopPropagation();
-                const result = await toggleTaskStatus(task.id, task.isCompleted);
-                if (result?.success) toast.success(result.success);
+                startToggleTransition(async () => {
+                  const result = await toggleTaskStatus(task.id, task.isCompleted);
+                  if (result?.success) toast.success(result.success);
+                });
               }}
-              className="z-20 p-2 hover:scale-110 transition-transform"
+              className="z-20 p-2 hover:scale-110 transition-transform disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              {task.isCompleted ? (
+              {isPendingToggle ? (
+                <Loader2 size={24} className="text-white/40 animate-spin" />
+              ) : task.isCompleted ? (
                 <CheckCircle2 size={24} className="text-green-400" />
               ) : (
                 <Circle size={24} className="text-white/20" />
@@ -201,16 +209,16 @@ export function TaskCard({ task, isReadOnly = false }: TaskProps) {
             <div className="mt-8 flex justify-end" onClick={(e) => e.stopPropagation()}>
               {!isReadOnly ? (
                 <div className="scale-75 origin-right">
-                  <EnergyTagSelector 
-                    selected={currentTag} 
+                  <EnergyTagSelector
+                    selected={currentTag}
                     onSelect={(id) => {
                       setCurrentTag(id);
                       // Usar setTimeout para permitir que o input hidden atualize
                       setTimeout(() => {
                         const form = document.querySelector(`form:has(input[value="${task.id}"])`) as HTMLFormElement;
-                        if(form) form.requestSubmit();
+                        if (form) form.requestSubmit();
                       }, 0);
-                    }} 
+                    }}
                   />
                   {/* Para referência do form onSubmit hack */}
                   <input type="hidden" defaultValue={task.id} />
@@ -243,19 +251,24 @@ export function TaskCard({ task, isReadOnly = false }: TaskProps) {
                 <div className="flex gap-4 mt-2">
                   <button
                     type="button"
-                    onClick={async () => {
-                      const result = await deleteTask(task.id);
-                      if (result?.success) toast.success(result.success);
-                      setIsConfirmingDelete(false);
+                    disabled={isDeleting}
+                    onClick={() => {
+                      startDeleteTransition(async () => {
+                        const result = await deleteTask(task.id);
+                        if (result?.success) toast.success(result.success);
+                        setIsConfirmingDelete(false);
+                      });
                     }}
-                    className="px-6 py-2 bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-colors text-sm font-bold"
+                    className="px-6 py-2 bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors text-sm font-bold flex items-center justify-center gap-2 cursor-pointer"
                   >
+                    {isDeleting && <Loader2 className="animate-spin" size={16} />}
                     Confirmar
                   </button>
                   <button
                     type="button"
+                    disabled={isDeleting}
                     onClick={() => setIsConfirmingDelete(false)}
-                    className="px-6 py-2 bg-white/10 text-white hover:bg-white/20 rounded-lg transition-colors text-sm font-bold"
+                    className="px-6 py-2 bg-white/10 text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors text-sm font-bold cursor-pointer"
                   >
                     Cancelar
                   </button>

@@ -2,8 +2,9 @@
 
 import { createTask } from "@/actions/task";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import { SmartTimeInput } from "./SmartTimeInput";
 import { EnergyTagSelector } from "./EnergyTags";
@@ -87,7 +88,7 @@ export function NewTaskForm({ blockId }: { blockId?: string }) {
                       onBlur={(e) => setStartTime(e.target.value)}
                       className="w-24 bg-white/5 border border-white/10 p-4 rounded-xl font-mono text-sm placeholder:text-white/20 focus:outline-none focus:border-purple-500 transition-colors text-center"
                     />
-                    
+
                     <div className="h-8 w-px bg-white/10 hidden sm:block" />
 
                     <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
@@ -96,9 +97,8 @@ export function NewTaskForm({ blockId }: { blockId?: string }) {
                           key={mins}
                           type="button"
                           onClick={() => setDuration(mins)}
-                          className={`px-4 py-3 rounded-lg text-xs font-bold transition-all ${
-                            duration === mins ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/80"
-                          }`}
+                          className={`cursor-pointer px-4 py-3 rounded-lg text-xs font-bold transition-all ${duration === mins ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/80"
+                            }`}
                         >
                           {mins >= 60 ? `${mins / 60}h` : `${mins}m`}
                         </button>
@@ -106,9 +106,8 @@ export function NewTaskForm({ blockId }: { blockId?: string }) {
                       <button
                         type="button"
                         onClick={() => setDuration(null)}
-                        className={`px-4 py-3 rounded-lg text-xs font-bold transition-all ${
-                          duration === null ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/80"
-                        }`}
+                        className={`cursor-pointer px-4 py-3 rounded-lg text-xs font-bold transition-all ${duration === null ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/80"
+                          }`}
                       >
                         Livre
                       </button>
@@ -139,16 +138,32 @@ export function NewTaskForm({ blockId }: { blockId?: string }) {
                 className="w-full bg-black/50 border border-white/10 p-4 rounded-xl placeholder:text-white/20 focus:outline-none focus:border-purple-500 transition-colors resize-none"
               />
 
-              <button
-                type="submit"
-                className="w-full cursor-pointer bg-purple-600 hover:bg-purple-500 text-white font-black uppercase tracking-widest py-4 rounded-xl transition-colors"
-              >
-                Registrar no Banco
-              </button>
+              <SubmitButton />
             </div>
           </motion.form>
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full cursor-pointer bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black uppercase tracking-widest py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
+    >
+      {pending ? (
+        <>
+          <Loader2 className="animate-spin" size={18} />
+          Registrando...
+        </>
+      ) : (
+        "Registrar no Banco"
+      )}
+    </button>
   );
 }

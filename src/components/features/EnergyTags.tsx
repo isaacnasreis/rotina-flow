@@ -18,7 +18,7 @@ export function EnergyTagSelector({ selected, onSelect }: { selected: string, on
           type="button"
           onClick={() => onSelect(tag.id)}
           className={clsx(
-            "relative px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-2 overflow-hidden",
+            "cursor-pointer relative px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-2 overflow-hidden",
             selected === tag.id
               ? `${tag.border} ${tag.text} scale-105 ${tag.glow} border`
               : "border border-white/5 text-white/40 hover:bg-white/5"
