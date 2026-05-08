@@ -5,6 +5,7 @@ import { Logo } from "@/components/ui/Logo";
 import { motion } from "framer-motion";
 import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   return (
@@ -40,7 +41,10 @@ export default function LoginPage() {
 
         <form
           action={async (formData) => {
-            await login(formData);
+            const res = await login(formData);
+            if (res?.error) {
+              toast.error(res.error);
+            }
           }}
           className="space-y-6 bg-white/5 p-8 rounded-3xl border border-white/10"
         >
