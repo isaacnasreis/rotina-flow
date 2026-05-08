@@ -59,6 +59,15 @@ export async function createTask(formData: FormData) {
 }
 
 export async function toggleTaskStatus(id: string, currentStatus: boolean) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("flow_session")?.value;
+  if (!userId) return { error: "Não autorizado" };
+
+  const task = await prisma.task.findFirst({
+    where: { id, userId },
+  });
+  if (!task) return { error: "Tarefa não encontrada ou não autorizada" };
+
   await prisma.task.update({
     where: { id },
     data: { isCompleted: !currentStatus },
@@ -68,6 +77,15 @@ export async function toggleTaskStatus(id: string, currentStatus: boolean) {
 }
 
 export async function deleteTask(id: string) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("flow_session")?.value;
+  if (!userId) return { error: "Não autorizado" };
+
+  const task = await prisma.task.findFirst({
+    where: { id, userId },
+  });
+  if (!task) return { error: "Tarefa não encontrada ou não autorizada" };
+
   await prisma.task.delete({
     where: { id },
   });
@@ -85,6 +103,15 @@ export async function updateTask(id: string, formData: FormData) {
   if (!startTimeStr || !endTimeStr) {
     return { error: "Os horários são obrigatórios." };
   }
+
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("flow_session")?.value;
+  if (!userId) return { error: "Não autorizado" };
+
+  const task = await prisma.task.findFirst({
+    where: { id, userId },
+  });
+  if (!task) return { error: "Tarefa não encontrada ou não autorizada" };
 
   const now = new Date();
   const [startHour, startMin] = startTimeStr.split(":").map(Number);

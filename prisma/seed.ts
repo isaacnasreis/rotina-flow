@@ -72,8 +72,75 @@ async function main() {
     },
   });
 
+  // Convidado 1 (convidado / PIN: 0000)
+  const guest1 = await prisma.user.upsert({
+    where: { username: "convidado" },
+    update: {},
+    create: {
+      name: "Visitante Alpha",
+      username: "convidado",
+      pin: "0000",
+      tasks: {
+        create: [
+          {
+            title: "Café e Planejamento Diário",
+            description: "Definir os focos e blocos de tempo para o dia de hoje.",
+            startTime: new Date(new Date().setHours(9, 0, 0, 0)),
+            endTime: new Date(new Date().setHours(9, 30, 0, 0)),
+            category: "recharge",
+          },
+          {
+            title: "Explorar o Flow State App",
+            description: "Testar a criação, edição, toggle e exclusão de tarefas e blocos personalizados.",
+            startTime: new Date(new Date().setHours(10, 0, 0, 0)),
+            endTime: new Date(new Date().setHours(11, 30, 0, 0)),
+            category: "deepwork",
+          },
+          {
+            title: "Enviar Feedback do Projeto",
+            description: "Deixar uma nota rápida ou sugestões sobre a experiência e UX.",
+            startTime: new Date(new Date().setHours(14, 0, 0, 0)),
+            endTime: new Date(new Date().setHours(14, 30, 0, 0)),
+            category: "flow",
+          },
+        ],
+      },
+    },
+  });
+
+  // Convidado 2 (tester / PIN: 1234)
+  const guest2 = await prisma.user.upsert({
+    where: { username: "tester" },
+    update: {},
+    create: {
+      name: "Visitante Beta",
+      username: "tester",
+      pin: "1234",
+      tasks: {
+        create: [
+          {
+            title: "Análise de Arquitetura",
+            description: "Revisar a estrutura de pastas e as Server Actions do Next.js.",
+            startTime: new Date(new Date().setHours(14, 0, 0, 0)),
+            endTime: new Date(new Date().setHours(15, 30, 0, 0)),
+            category: "deepwork",
+          },
+          {
+            title: "Coffee Break / Networking",
+            description: "Momento para descontrair e conectar com o time.",
+            startTime: new Date(new Date().setHours(16, 0, 0, 0)),
+            endTime: new Date(new Date().setHours(16, 30, 0, 0)),
+            category: "connect",
+          },
+        ],
+      },
+    },
+  });
+
   console.log("Semente plantada no banco de dados:", user.username);
   console.log("Semente plantada no banco de dados:", user2.username);
+  console.log("Semente de visitante criada:", guest1.username);
+  console.log("Semente de visitante criada:", guest2.username);
 }
 
 main()
