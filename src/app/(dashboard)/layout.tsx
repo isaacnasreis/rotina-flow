@@ -1,5 +1,6 @@
 import { logout } from "@/actions/auth";
 import { ShareButton } from "@/components/features/ShareButton";
+import { Logo } from "@/components/ui/Logo";
 import { LogOut } from "lucide-react";
 import React from "react";
 
@@ -14,9 +15,7 @@ export default function DashboardLayout({
 
       <div className="relative z-10">
         <nav className="border-b border-white/10 p-6 flex justify-between items-center bg-[#0a0a0a]/80 backdrop-blur-md sticky top-0 z-50">
-          <h1 className="text-2xl font-black tracking-tighter uppercase italic">
-            Flow <span className="text-purple-500">State</span>
-          </h1>
+          <Logo size="sm" />
           <div className="flex gap-6 items-center">
             <div className="flex gap-2 items-center">
               <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
