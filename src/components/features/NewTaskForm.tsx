@@ -34,7 +34,7 @@ export function NewTaskForm({ blockId }: { blockId?: string }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9 }}
             onClick={() => setIsOpen(true)}
-            className="w-full py-4 border border-dashed border-white/20 hover:border-purple-500 hover:bg-purple-500/10 rounded-2xl text-white/50 flex items-center justify-center gap-2 transition-colors uppercase font-bold tracking-widest text-sm"
+            className="w-full py-4 border border-dashed border-white/20 hover:border-purple-500 hover:bg-purple-500/10 rounded-2xl text-white/50 flex items-center justify-center gap-2 transition-colors uppercase font-bold tracking-widest text-sm cursor-pointer"
           >
             <Plus size={18} />
           </motion.button>
