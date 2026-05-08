@@ -1,6 +1,4 @@
-import { NewTaskForm } from "@/components/features/NewTaskForm";
-import { TaskCard } from "@/components/features/TaskCard";
-import { TaskListWrapper } from "@/components/ui/TaskListWrapper";
+import { DashboardBlocks } from "@/components/features/DashboardBlocks";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -30,6 +28,11 @@ export default async function DashboardPage() {
     },
   });
 
+  const blocks = await prisma.block.findMany({
+    where: { userId },
+    orderBy: { order: "asc" },
+  });
+
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("pt-BR", {
       hour: "2-digit",
@@ -52,33 +55,20 @@ export default async function DashboardPage() {
         </p>
       </header>
 
-      <NewTaskForm />
-
-      <div className="relative border-l-2 border-white/5 pl-8 ml-4">
-        <TaskListWrapper>
-          {tasks.length === 0 ? (
-            <p className="text-white/30 italic">
-              A rotina de hoje está limpa. Adicione um fluxo acima.
-            </p>
-          ) : (
-            tasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={{
-                  id: task.id,
-                  title: task.title,
-                  time: `${formatTime(task.startTime)} - ${formatTime(task.endTime)}`,
-                  startTimeStr: formatTime(task.startTime),
-                  endTimeStr: formatTime(task.endTime),
-                  description: task.description || "",
-                  category: task.category,
-                  isCompleted: task.isCompleted,
-                }}
-              />
-            ))
-          )}
-        </TaskListWrapper>
-      </div>
+      <DashboardBlocks 
+        blocks={blocks}
+        tasks={tasks.map(task => ({
+          id: task.id,
+          title: task.title,
+          time: `${formatTime(task.startTime)} - ${formatTime(task.endTime)}`,
+          startTimeStr: formatTime(task.startTime),
+          endTimeStr: formatTime(task.endTime),
+          description: task.description || "",
+          category: task.category,
+          isCompleted: task.isCompleted,
+          blockId: task.blockId,
+        }))} 
+      />
     </section>
   );
 }

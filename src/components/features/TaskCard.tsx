@@ -9,8 +9,11 @@ import {
   Clock,
   Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
+import { SmartTimeInput } from "./SmartTimeInput";
+import { ENERGY_TAGS, EnergyTagSelector } from "./EnergyTags";
 
 interface TaskProps {
   task: {
@@ -29,6 +32,14 @@ interface TaskProps {
 export function TaskCard({ task, isReadOnly = false }: TaskProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [currentTag, setCurrentTag] = useState(task.category);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const tagData = ENERGY_TAGS.find((t) => t.id === currentTag) || ENERGY_TAGS[0];
 
   return (
     <motion.form
@@ -42,9 +53,17 @@ export function TaskCard({ task, isReadOnly = false }: TaskProps) {
         "relative cursor-pointer overflow-hidden transition-all duration-500",
         task.isCompleted ? "opacity-40 grayscale-[0.5]" : "opacity-100",
         isOpen
-          ? "bg-purple-900/20 border-2 border-purple-500/50 my-8 p-8 rounded-3xl"
+          ? `border-2 my-8 p-8 rounded-[2rem] ${tagData.border}`
           : "bg-white/5 border border-white/10 hover:border-white/30 my-4 p-5 rounded-2xl",
       )}
+      style={
+        isOpen && !task.isCompleted
+          ? {
+              background: `radial-gradient(circle at top right, ${tagData.hex}, transparent 60%), rgba(10,10,10,0.6)`,
+              backdropFilter: "blur(16px)",
+            }
+          : {}
+      }
     >
       {task.isCompleted && (
         <motion.div
@@ -94,20 +113,18 @@ export function TaskCard({ task, isReadOnly = false }: TaskProps) {
           <div>
             {isOpen && !isReadOnly ? (
               <div className="flex gap-2 mb-1" onClick={(e) => e.stopPropagation()}>
-                <input
-                  type="time"
+                <SmartTimeInput
                   name="startTime"
                   defaultValue={task.startTimeStr}
                   onBlur={(e) => e.currentTarget.form?.requestSubmit()}
-                  className="bg-transparent border-none text-xs font-mono opacity-60 uppercase tracking-tighter focus:outline-none focus:text-purple-400 w-16"
+                  className="bg-transparent border-none text-xs font-mono opacity-60 uppercase tracking-tighter focus:outline-none focus:text-purple-400 w-12"
                 />
                 <span className="text-xs font-mono opacity-40">-</span>
-                <input
-                  type="time"
+                <SmartTimeInput
                   name="endTime"
                   defaultValue={task.endTimeStr}
                   onBlur={(e) => e.currentTarget.form?.requestSubmit()}
-                  className="bg-transparent border-none text-xs font-mono opacity-60 uppercase tracking-tighter focus:outline-none focus:text-purple-400 w-16"
+                  className="bg-transparent border-none text-xs font-mono opacity-60 uppercase tracking-tighter focus:outline-none focus:text-purple-400 w-12"
                 />
               </div>
             ) : (
@@ -181,50 +198,74 @@ export function TaskCard({ task, isReadOnly = false }: TaskProps) {
               />
             )}
 
-            <div className="mt-8 flex justify-end">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 bg-white/10 rounded-full">
-                Categoria: {task.category}
-              </span>
+            <div className="mt-8 flex justify-end" onClick={(e) => e.stopPropagation()}>
+              {!isReadOnly ? (
+                <div className="scale-75 origin-right">
+                  <EnergyTagSelector 
+                    selected={currentTag} 
+                    onSelect={(id) => {
+                      setCurrentTag(id);
+                      // Usar setTimeout para permitir que o input hidden atualize
+                      setTimeout(() => {
+                        const form = document.querySelector(`form:has(input[value="${task.id}"])`) as HTMLFormElement;
+                        if(form) form.requestSubmit();
+                      }, 0);
+                    }} 
+                  />
+                  {/* Para referência do form onSubmit hack */}
+                  <input type="hidden" defaultValue={task.id} />
+                </div>
+              ) : (
+                <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 ${tagData.bg} ${tagData.text} rounded-full`}>
+                  {tagData.label}
+                </span>
+              )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {isConfirmingDelete && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex flex-col items-center gap-4 p-6 bg-[#111] border border-red-500/30 rounded-2xl">
-              <p className="text-white font-bold">Eliminar este bloco?</p>
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const result = await deleteTask(task.id);
-                    if (result?.success) toast.success(result.success);
-                    setIsConfirmingDelete(false);
-                  }}
-                  className="px-4 py-2 bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-colors text-sm font-bold"
-                >
-                  Confirmar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsConfirmingDelete(false)}
-                  className="px-4 py-2 bg-white/10 text-white hover:bg-white/20 rounded-lg transition-colors text-sm"
-                >
-                  Cancelar
-                </button>
+      {isMounted && createPortal(
+        <AnimatePresence>
+          {isConfirmingDelete && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex flex-col items-center gap-4 p-6 bg-[#111] border border-red-500/30 rounded-2xl">
+                <p className="text-white font-bold text-xl">Eliminar esta tarefa?</p>
+                <p className="text-white/60 text-sm text-center max-w-xs">
+                  A tarefa "{task.title}" será removida permanentemente.
+                </p>
+                <div className="flex gap-4 mt-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const result = await deleteTask(task.id);
+                      if (result?.success) toast.success(result.success);
+                      setIsConfirmingDelete(false);
+                    }}
+                    className="px-6 py-2 bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-colors text-sm font-bold"
+                  >
+                    Confirmar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsConfirmingDelete(false)}
+                    className="px-6 py-2 bg-white/10 text-white hover:bg-white/20 rounded-lg transition-colors text-sm font-bold"
+                  >
+                    Cancelar
+                  </button>
+                </div>
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </motion.form>
   );
 }

@@ -7,9 +7,10 @@ import { cookies } from "next/headers";
 export async function createTask(formData: FormData) {
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
-  const category = formData.get("category") as string;
   const startTimeStr = formData.get("startTime") as string;
   const endTimeStr = formData.get("endTime") as string;
+  const category = formData.get("category") as string;
+  const blockId = formData.get("blockId") as string | null;
 
   if (!title) return { error: "O título é obrigatório." };
 
@@ -47,8 +48,9 @@ export async function createTask(formData: FormData) {
       description,
       startTime: startDate,
       endTime: endDate,
-      category: category || "geral",
-      userId: userId,
+      category: category || "deepwork",
+      userId,
+      ...(blockId && blockId !== "geral" ? { blockId } : {}),
     },
   });
 

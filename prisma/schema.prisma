@@ -19,8 +19,19 @@ model User {
   username   String   @unique
   pin        String
   tasks      Task[]
+  blocks     Block[]
   sharedWith SharedAccess[]
   createdAt  DateTime @default(now())
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  name      String
+  order     Int      @default(0)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  tasks     Task[]
+  createdAt DateTime @default(now())
 }
 
 model Task {
@@ -33,6 +44,8 @@ model Task {
   category    String   @default("geral")
   userId      String
   user        User     @relation(fields: [userId], references: [id])
+  blockId     String?
+  block       Block?   @relation(fields: [blockId], references: [id], onDelete: SetNull)
   createdAt   DateTime @default(now())
 }
 

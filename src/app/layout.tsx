@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 };
 
 import { Toaster } from "@/components/ui/Toaster";
+import { DynamicBackground } from "@/components/layout/DynamicBackground";
 
 export default function RootLayout({
   children,
@@ -15,7 +16,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className="antialiased bg-[#0a0a0a]">
+      <body className="antialiased bg-transparent text-white">
+        <DynamicBackground />
         {children}
         <Toaster />
       </body>

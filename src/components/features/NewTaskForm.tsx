@@ -5,9 +5,23 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { SmartTimeInput } from "./SmartTimeInput";
+import { EnergyTagSelector } from "./EnergyTags";
 
-export function NewTaskForm() {
+export function NewTaskForm({ blockId }: { blockId?: string }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedTag, setSelectedTag] = useState("deepwork");
+  const [startTime, setStartTime] = useState("");
+  const [duration, setDuration] = useState<number | null>(60);
+
+  const getEndTime = (start: string, mins: number) => {
+    if (!start) return "";
+    const [h, m] = start.split(":").map(Number);
+    if (isNaN(h) || isNaN(m)) return start;
+    const date = new Date();
+    date.setHours(h, m + mins, 0, 0);
+    return date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  };
 
   return (
     <div className="mb-12 relative">
@@ -38,7 +52,7 @@ export function NewTaskForm() {
                 setIsOpen(false);
               }
             }}
-            className="bg-[#111] border-2 border-purple-500/30 p-6 rounded-3xl overflow-hidden"
+            className="bg-black/60 backdrop-blur-2xl border border-white/10 p-8 rounded-[2rem] overflow-hidden shadow-2xl"
           >
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-black italic uppercase text-xl">
@@ -54,6 +68,7 @@ export function NewTaskForm() {
             </div>
 
             <div className="space-y-4">
+              <input type="hidden" name="blockId" value={blockId} />
               <input
                 type="text"
                 name="title"
@@ -62,31 +77,59 @@ export function NewTaskForm() {
                 className="w-full bg-black/50 border border-white/10 p-4 rounded-xl font-bold placeholder:text-white/20 focus:outline-none focus:border-purple-500 transition-colors"
               />
 
-              <div className="flex gap-4">
-                <input
-                  type="time"
-                  name="startTime"
-                  required
-                  className="w-1/4 bg-black/50 border border-white/10 p-4 rounded-xl font-mono text-sm placeholder:text-white/20 focus:outline-none focus:border-purple-500 transition-colors"
-                />
-                <span className="flex items-center text-white/30 font-bold">
-                  -
-                </span>
-                <input
-                  type="time"
-                  name="endTime"
-                  required
-                  className="w-1/4 bg-black/50 border border-white/10 p-4 rounded-xl font-mono text-sm placeholder:text-white/20 focus:outline-none focus:border-purple-500 transition-colors"
-                />
-                <select
-                  name="category"
-                  className="w-full bg-black/50 border border-white/10 p-4 rounded-xl uppercase text-sm focus:outline-none focus:border-purple-500 transition-colors"
-                >
-                  <option value="trabalho">Trabalho / Código</option>
-                  <option value="estudo">Estudos / Universidade</option>
-                  <option value="saude">Saúde / Corpo</option>
-                  <option value="lazer">Artes / Lazer</option>
-                </select>
+              <div className="flex flex-col gap-8 py-4">
+                <div className="flex flex-col gap-3">
+                  <span className="text-xs uppercase tracking-widest font-bold opacity-30">Quando e Quanto tempo?</span>
+                  <div className="flex flex-wrap gap-4 items-center">
+                    <SmartTimeInput
+                      name="startTime"
+                      defaultValue={new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                      onBlur={(e) => setStartTime(e.target.value)}
+                      className="w-24 bg-white/5 border border-white/10 p-4 rounded-xl font-mono text-sm placeholder:text-white/20 focus:outline-none focus:border-purple-500 transition-colors text-center"
+                    />
+                    
+                    <div className="h-8 w-px bg-white/10 hidden sm:block" />
+
+                    <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
+                      {[15, 30, 60, 120].map((mins) => (
+                        <button
+                          key={mins}
+                          type="button"
+                          onClick={() => setDuration(mins)}
+                          className={`px-4 py-3 rounded-lg text-xs font-bold transition-all ${
+                            duration === mins ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/80"
+                          }`}
+                        >
+                          {mins >= 60 ? `${mins / 60}h` : `${mins}m`}
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setDuration(null)}
+                        className={`px-4 py-3 rounded-lg text-xs font-bold transition-all ${
+                          duration === null ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/80"
+                        }`}
+                      >
+                        Livre
+                      </button>
+                    </div>
+
+                    {duration === null && (
+                      <SmartTimeInput
+                        name="endTime"
+                        className="w-24 bg-white/5 border border-white/10 p-4 rounded-xl font-mono text-sm placeholder:text-white/20 focus:outline-none focus:border-purple-500 transition-colors text-center"
+                      />
+                    )}
+                    {duration !== null && (
+                      <input type="hidden" name="endTime" value={getEndTime(startTime, duration)} />
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <span className="text-xs uppercase tracking-widest font-bold opacity-30">Frequência / Vibração</span>
+                  <EnergyTagSelector selected={selectedTag} onSelect={setSelectedTag} />
+                </div>
               </div>
 
               <textarea
