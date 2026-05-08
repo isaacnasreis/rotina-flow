@@ -69,6 +69,8 @@ export default async function SharedRoutinePage({ params }: SharePageProps) {
                     id: task.id,
                     title: task.title,
                     time: `${formatTime(task.startTime)} - ${formatTime(task.endTime)}`,
+                    startTimeStr: formatTime(task.startTime),
+                    endTimeStr: formatTime(task.endTime),
                     description: task.description || "Sem detalhes adicionais.",
                     category: task.category,
                     isCompleted: task.isCompleted,
