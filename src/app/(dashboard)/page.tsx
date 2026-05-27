@@ -95,7 +95,10 @@ export default async function DashboardPage() {
               <span className="text-accent font-semibold">{completedCount}</span> {dict.dashboard.completed}
             </p>
           </div>
-          <DashboardActions />
+          <div className="flex items-center gap-4">
+            <ProgressRing completed={completedCount} total={totalCount} size={64} />
+            <DashboardActions />
+          </div>
         </header>
 
         {/* Task List */}

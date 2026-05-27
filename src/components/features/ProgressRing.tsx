@@ -15,10 +15,10 @@ export function ProgressRing({ completed, total, size = 100 }: ProgressRingProps
   const isAllDone = total > 0 && completed === total;
 
   const progressColor = isAllDone
-    ? "#22c55e"
+    ? "var(--success)"
     : progress > 0.5
-      ? "#a855f7"
-      : "#6366f1";
+      ? "var(--accent)"
+      : "var(--text-secondary)";
 
   return (
     <div className={`relative inline-flex items-center justify-center ${isAllDone ? "animate-celebrate" : ""}`}>
@@ -33,7 +33,7 @@ export function ProgressRing({ completed, total, size = 100 }: ProgressRingProps
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgba(255,255,255,0.06)"
+          stroke="var(--border-subtle)"
           strokeWidth={strokeWidth}
         />
         {/* Progress circle */}
@@ -50,7 +50,7 @@ export function ProgressRing({ completed, total, size = 100 }: ProgressRingProps
             strokeDashoffset={dashOffset}
             className="progress-ring-circle"
             style={{
-              filter: isAllDone ? `drop-shadow(0 0 6px ${progressColor})` : "none",
+              filter: isAllDone ? `drop-shadow(0 0 6px var(--success))` : "none",
             }}
           />
         )}
@@ -58,12 +58,12 @@ export function ProgressRing({ completed, total, size = 100 }: ProgressRingProps
 
       {/* Center text */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-lg font-bold tabular-nums leading-none">
+        <span className="text-lg font-bold tabular-nums leading-none text-text-primary">
           {completed}
-          <span className="text-white/25 text-sm font-normal">/{total}</span>
+          <span className="text-text-muted text-sm font-normal">/{total}</span>
         </span>
         {total > 0 && (
-          <span className="text-[10px] text-white/30 font-medium mt-1 uppercase tracking-wider">
+          <span className="text-[10px] text-text-muted font-medium mt-1 uppercase tracking-wider">
             {isAllDone ? "completo!" : "feitas"}
           </span>
         )}

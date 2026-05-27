@@ -1,8 +1,9 @@
 import { logout } from "@/actions/auth";
 import { ShareButton } from "@/components/features/ShareButton";
 import { Logo } from "@/components/ui/Logo";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import React from "react";
+import Link from "next/link";
 
 export default function DashboardLayout({
   children,
@@ -10,20 +11,27 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-slate-100 selection:bg-purple-500">
+    <div className="min-h-screen bg-bg-primary text-text-primary selection:bg-accent">
       <div className="relative z-10">
-        <nav className="border-b border-white/[0.06] px-5 py-4 flex justify-between items-center bg-[#0a0a0f]/80 backdrop-blur-md sticky top-0 z-50">
+        <nav className="border-b border-border-subtle px-5 py-4 flex justify-between items-center bg-bg-primary/80 backdrop-blur-md sticky top-0 z-50">
           <Logo size="sm" />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <ShareButton />
-            <div className="w-px h-5 bg-white/[0.06]" />
+            <Link 
+              href="/settings"
+              className="text-text-secondary hover:text-text-primary transition-colors cursor-pointer p-1.5 rounded-lg hover:bg-bg-card-hover"
+              title="Configurações"
+            >
+              <Settings size={18} />
+            </Link>
+            <div className="w-px h-5 bg-border-subtle mx-1" />
             <form action={logout} className="flex items-center">
               <button
                 type="submit"
-                className="text-white/30 hover:text-red-400 transition-colors cursor-pointer p-1.5 rounded-lg hover:bg-white/5"
+                className="text-text-muted hover:text-red-400 transition-colors cursor-pointer p-1.5 rounded-lg hover:bg-bg-card-hover"
                 title="Sair"
               >
-                <LogOut size={16} />
+                <LogOut size={18} />
               </button>
             </form>
           </div>

@@ -105,10 +105,10 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
       style={{ ...style, animationDelay: style?.animationDelay || "0ms" }}
     >
       <div
-        className={`group flex items-center gap-4 py-4 px-5 rounded-2xl transition-all duration-300 relative overflow-hidden ${
+        className={`group flex items-center gap-4 py-4 px-5 transition-all duration-300 relative overflow-hidden ${
           task.isCompleted
-            ? "task-completed"
-            : "bg-bg-card hover:bg-bg-card-hover border border-border-subtle hover:border-glass-border"
+            ? "task-completed glass-card border-transparent"
+            : "glass-card hover:border-glass-border"
         } ${justCompleted ? "animate-sparkle" : ""}`}
       >
         {/* Checkbox Circle */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { completeAllTasks, deleteAllTasks } from "@/actions/task";
-import { CheckCircle2, Trash2, MoreVertical, History, Settings } from "lucide-react";
+import { CheckCircle2, Trash2, MoreVertical, History } from "lucide-react";
 import { useState, useRef, useTransition } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -70,12 +70,6 @@ export function DashboardActions() {
               <History size={16} />
               <span>Logbook</span>
             </Link>
-            <Link
-              href="/settings"
-              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-bg-card-hover transition-colors text-text-secondary hover:text-text-primary"
-            >
-              <Settings size={16} />
-              <span>Configurações</span>
             </Link>
           </div>
         </>

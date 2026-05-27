@@ -22,7 +22,7 @@ export function DynamicBackground() {
   return (
     <>
       <div
-        className={`fixed inset-0 z-[-2] bg-gradient-to-br ${gradients[timeOfDay]} transition-colors duration-[3000ms]`}
+        className={`dynamic-bg fixed inset-0 z-[-2] bg-gradient-to-br ${gradients[timeOfDay]} transition-colors duration-[3000ms]`}
       />
       {/* Noise overlay pattern */}
       <svg className="pointer-events-none fixed isolate z-[-1] opacity-[0.15] mix-blend-overlay w-full h-full">
