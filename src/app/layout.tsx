@@ -17,8 +17,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning data-theme="dark">
       <head>
+        <meta name="theme-color" content="#0a0a0f" />
+        <meta name="color-scheme" content="dark light" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -28,6 +30,9 @@ export default function RootLayout({
                   const state = JSON.parse(stored).state;
                   if (state && state.theme) {
                     document.documentElement.setAttribute('data-theme', state.theme);
+                    const colors = { dark: '#0a0a0f', light: '#f0f4f8', oled: '#000000' };
+                    const meta = document.querySelector('meta[name="theme-color"]');
+                    if (meta) meta.content = colors[state.theme] || '#0a0a0f';
                   }
                 } else {
                   document.documentElement.setAttribute('data-theme', 'dark');
@@ -44,7 +49,7 @@ export default function RootLayout({
         <ThemeProvider />
         <DynamicBackground />
         {children}
-        <Toaster theme="dark" position="bottom-center" />
+        <Toaster position="bottom-center" />
       </body>
     </html>
   );

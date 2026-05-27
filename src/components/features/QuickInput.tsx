@@ -1,7 +1,7 @@
 "use client";
 
 import { createTask } from "@/actions/task";
-import { Plus, ChevronUp } from "lucide-react";
+import { ArrowUp, Loader2 } from "lucide-react";
 import { useState, useRef, useCallback, useEffect, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -15,9 +15,9 @@ function getPlaceholder(): string {
 
 export function QuickInput() {
   const [value, setValue] = useState("");
-  const [isExpanded, setIsExpanded] = useState(false);
   const [placeholder, setPlaceholder] = useState("Adicione uma tarefa...");
   const [isPending, startTransition] = useTransition();
+  const [justSubmitted, setJustSubmitted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -26,20 +26,24 @@ export function QuickInput() {
 
   const handleSubmit = useCallback(() => {
     const trimmed = value.trim();
-    if (!trimmed) return;
+    if (!trimmed || isPending) return;
+
+    // Flash feedback antes de limpar
+    setJustSubmitted(true);
+    setTimeout(() => setJustSubmitted(false), 300);
 
     setValue("");
     startTransition(async () => {
       const result = await createTask(trimmed);
       if (result?.error) {
         toast.error(result.error);
-        setValue(trimmed); // restore on error
+        setValue(trimmed); // restaura em caso de erro
       }
     });
 
-    // Keep focus for rapid entry
+    // Mantém foco para entrada rápida em série
     inputRef.current?.focus();
-  }, [value]);
+  }, [value, isPending]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -47,50 +51,47 @@ export function QuickInput() {
         e.preventDefault();
         handleSubmit();
       }
+      if (e.key === "Escape") {
+        setValue("");
+        inputRef.current?.blur();
+      }
     },
     [handleSubmit]
   );
 
+  const hasText = value.trim().length > 0;
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none">
-      <div className="max-w-2xl mx-auto p-4 pointer-events-auto">
-        {/* Expanded options (future: time/category) */}
-        {isExpanded && (
-          <div className="glass-card mb-2 p-4 animate-slide-up">
-            <p className="text-[11px] text-text-muted uppercase tracking-widest font-bold mb-3">
-              Opções rápidas
-            </p>
-            <p className="text-xs text-text-secondary italic">
-              Use o menu &quot;···&quot; em cada tarefa para adicionar horário e categoria.
-            </p>
-          </div>
-        )}
+      {/* Gradiente para separar visualmente da lista */}
+      <div className="absolute bottom-full left-0 right-0 h-20 bg-gradient-to-t from-bg-primary to-transparent pointer-events-none" />
 
-        {/* Main Input Area */}
+      <div className="max-w-2xl mx-auto px-4 pb-4 pt-2 pointer-events-auto">
+        {/* Container principal */}
         <div
-          className="quick-input flex items-center gap-3 px-5 py-4"
-          style={{
-            boxShadow: "0 -8px 32px rgba(0, 0, 0, 0.4)",
-          }}
+          className={`quick-input flex items-center gap-3 px-4 py-3.5 ${justSubmitted ? "animate-submit-flash" : ""}`}
         >
-          {/* Expand toggle */}
-          <button
-            type="button"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className={`
-              cursor-pointer flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center
-              transition-all duration-200
-              ${isExpanded
-                ? "bg-accent/20 text-accent rotate-180"
-                : "bg-bg-card-hover text-text-muted hover:bg-border-subtle hover:text-text-primary"
-              }
-            `}
-            aria-label="Expandir opções"
-          >
-            {isExpanded ? <ChevronUp size={16} /> : <Plus size={16} />}
-          </button>
+          {/* Ícone de status */}
+          <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center">
+            {isPending ? (
+              <Loader2
+                size={18}
+                className="text-accent animate-spin"
+                aria-label="Salvando tarefa..."
+              />
+            ) : (
+              <div
+                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                  hasText
+                    ? "bg-accent scale-125 shadow-[0_0_8px_var(--accent-glow-strong)]"
+                    : "bg-border-subtle"
+                }`}
+                aria-hidden="true"
+              />
+            )}
+          </div>
 
-          {/* Text input */}
+          {/* Campo de texto */}
           <input
             ref={inputRef}
             type="text"
@@ -99,37 +100,38 @@ export function QuickInput() {
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={isPending}
-            className={`
-              flex-1 bg-transparent text-[15px] font-medium outline-none
+            className="flex-1 bg-transparent text-[15px] font-medium outline-none
               placeholder:text-text-muted text-text-primary caret-accent
-              disabled:opacity-50
-            `}
+              disabled:opacity-60"
             autoComplete="off"
             spellCheck={false}
+            aria-label="Nova tarefa"
           />
 
-          {/* Submit button — only visible when there's text */}
-          {value.trim() && (
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={isPending}
-              className="cursor-pointer flex-shrink-0 w-8 h-8 rounded-full bg-accent hover:opacity-80 disabled:opacity-50 flex items-center justify-center transition-all animate-fade-in"
-              aria-label="Adicionar tarefa"
-            >
-              <Plus size={16} className="text-bg-primary" />
-            </button>
-          )}
+          {/* Botão de envio — visível apenas com texto */}
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!hasText || isPending}
+            className={`
+              flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center
+              transition-all duration-200
+              ${hasText && !isPending
+                ? "bg-accent text-bg-primary scale-100 hover:opacity-85 hover:scale-105 active:scale-95 shadow-[0_0_12px_var(--accent-glow)]"
+                : "bg-border-subtle text-text-muted scale-90 opacity-0 pointer-events-none"
+              }
+            `}
+            aria-label="Adicionar tarefa"
+          >
+            <ArrowUp size={17} strokeWidth={2.5} />
+          </button>
         </div>
 
-        {/* Keyboard hint */}
-        <p className="text-center text-[10px] text-text-muted mt-2 font-mono tracking-wider">
-          ENTER para adicionar · ESC para limpar
+        {/* Dica de atalho */}
+        <p className="text-center text-[10px] text-text-muted mt-2 font-mono tracking-widest select-none">
+          {hasText ? "ENTER para adicionar · ESC para cancelar" : "Digite e pressione ENTER"}
         </p>
       </div>
-
-      {/* Gradient fade above input for visual separation */}
-      <div className="absolute bottom-full left-0 right-0 h-16 bg-gradient-to-t from-bg-primary to-transparent pointer-events-none" />
     </div>
   );
 }

@@ -24,7 +24,7 @@ export function DashboardActions() {
     if (!window.confirm("Tem certeza que deseja apagar todas as tarefas de hoje?")) {
       return;
     }
-    
+
     startTransition(async () => {
       const result = await deleteAllTasks();
       if (result?.success) toast.success(result.success);
@@ -36,53 +36,79 @@ export function DashboardActions() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-full hover:bg-bg-card-hover text-text-muted hover:text-text-primary transition-colors"
+        className={`
+          p-2 rounded-full transition-all duration-200
+          ${isOpen
+            ? "bg-bg-card text-text-primary"
+            : "text-text-muted hover:bg-bg-card-hover hover:text-text-primary"
+          }
+        `}
         disabled={isPending}
+        aria-label="Ações do painel"
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
       >
         <MoreVertical size={20} />
       </button>
 
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} aria-hidden="true" />
           <div
             ref={menuRef}
-            className="absolute right-0 top-full mt-2 w-48 glass-card py-2 shadow-xl z-50 animate-fade-in"
+            role="menu"
+            aria-label="Ações do painel"
+            className="absolute right-0 top-full mt-2 w-52 glass-card py-2 shadow-[0_16px_48px_rgba(0,0,0,0.25)] z-50 animate-slide-up origin-top-right"
           >
             <button
+              role="menuitem"
               onClick={handleCompleteAll}
-              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-bg-card-hover transition-colors text-success"
+              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2.5
+                hover:bg-bg-card-hover transition-colors text-success cursor-pointer rounded-lg mx-auto"
+              style={{ width: "calc(100% - 8px)", marginLeft: "4px" }}
             >
-              <CheckCircle2 size={16} />
+              <CheckCircle2 size={16} aria-hidden="true" />
               <span>Concluir Todas</span>
             </button>
             <button
+              role="menuitem"
               onClick={handleDeleteAll}
-              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-bg-card-hover transition-colors text-red-500"
+              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2.5
+                hover:bg-red-500/10 hover:text-red-400 transition-colors text-red-500 cursor-pointer rounded-lg"
+              style={{ width: "calc(100% - 8px)", marginLeft: "4px" }}
             >
-              <Trash2 size={16} />
+              <Trash2 size={16} aria-hidden="true" />
               <span>Limpar Todas</span>
             </button>
-            <div className="h-px w-full bg-border-subtle my-1" />
+
+            <div className="h-px w-full bg-border-subtle my-1.5" role="separator" />
+
             <Link
               href="/history"
-              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-bg-card-hover transition-colors text-text-secondary hover:text-text-primary"
+              role="menuitem"
+              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2.5
+                hover:bg-bg-card-hover transition-colors text-text-secondary hover:text-text-primary rounded-lg"
+              style={{ width: "calc(100% - 8px)", marginLeft: "4px" }}
               onClick={() => setIsOpen(false)}
             >
-              <History size={16} />
+              <History size={16} aria-hidden="true" />
               <span>Logbook</span>
             </Link>
             <Link
               href="/settings"
-              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-bg-card-hover transition-colors text-text-secondary hover:text-text-primary"
+              role="menuitem"
+              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2.5
+                hover:bg-bg-card-hover transition-colors text-text-secondary hover:text-text-primary rounded-lg"
+              style={{ width: "calc(100% - 8px)", marginLeft: "4px" }}
               onClick={() => setIsOpen(false)}
             >
-              <Settings size={16} />
+              <Settings size={16} aria-hidden="true" />
               <span>Configurações</span>
             </Link>
-            <ShareButton 
-              withLabel 
-              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-bg-card-hover transition-colors text-text-secondary hover:text-text-primary cursor-pointer"
+            <ShareButton
+              withLabel
+              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2.5
+                hover:bg-bg-card-hover transition-colors text-text-secondary hover:text-text-primary cursor-pointer rounded-lg"
               onClickCallback={() => setIsOpen(false)}
             />
           </div>
