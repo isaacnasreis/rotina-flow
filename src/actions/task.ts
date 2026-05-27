@@ -11,7 +11,7 @@ const OFFENSIVE_WORDS = [
 
 function hasOffensiveContent(text: string): boolean {
   if (!text) return false;
-  const normalized = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // remove acentos
+  const normalized = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   return OFFENSIVE_WORDS.some(word => {
     const wordNormalized = word.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const regex = new RegExp(`\\b${wordNormalized}\\b`, "i");
@@ -19,212 +19,189 @@ function hasOffensiveContent(text: string): boolean {
   });
 }
 
-export async function createTask(formData: FormData) {
-  const title = formData.get("title") as string;
-  const description = formData.get("description") as string;
-  const startTimeStr = formData.get("startTime") as string;
-  const endTimeStr = formData.get("endTime") as string;
-  const category = formData.get("category") as string;
-  const blockId = formData.get("blockId") as string | null;
+async function getSessionUserId() {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("flow_session")?.value;
+  if (!userId) throw new Error("Não autorizado");
+  return userId;
+}
 
-  if (!title) return { error: "O título é obrigatório." };
+function getTodayRange() {
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  return { startOfDay, endOfDay };
+}
 
-  if (!startTimeStr || !endTimeStr) {
-    return { error: "Os horários de início e fim são obrigatórios." };
+function parseTime(timeStr: string): Date | null {
+  const parts = timeStr.split(":").map(Number);
+  if (parts.length < 2 || isNaN(parts[0]) || isNaN(parts[1])) return null;
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), parts[0], parts[1]);
+}
+
+export async function createTask(
+  title: string,
+  options?: {
+    description?: string;
+    startTime?: string;
+    endTime?: string;
+    category?: string;
+    blockId?: string;
   }
+) {
+  if (!title || !title.trim()) return { error: "O título é obrigatório." };
+  if (title.length > 100) return { error: "Título muito longo (máx. 100 caracteres)." };
+
+  const description = options?.description || "";
+  if (description.length > 500) return { error: "Descrição muito longa (máx. 500 caracteres)." };
 
   if (hasOffensiveContent(title) || hasOffensiveContent(description)) {
     return { error: "O conteúdo contém termos ofensivos não permitidos." };
   }
 
-  const cookieStore = await cookies();
-  const userId = cookieStore.get("flow_session")?.value;
-
-  if (!userId) throw new Error("Não autorizado");
-
-  const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  const userId = await getSessionUserId();
+  const { startOfDay, endOfDay } = getTodayRange();
 
   const todayTasksCount = await prisma.task.count({
     where: {
       userId,
-      startTime: {
-        gte: startOfDay,
-        lte: endOfDay,
-      },
+      createdAt: { gte: startOfDay, lte: endOfDay },
     },
   });
 
   if (todayTasksCount >= 15) {
-    return { error: "Limite diário de 15 tarefas atingido para este usuário." };
+    return { error: "Limite diário de 15 tarefas atingido." };
   }
 
-  const [startHour, startMin] = startTimeStr.split(":").map(Number);
-  const startDate = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    startHour,
-    startMin,
-  );
+  const startDate = options?.startTime ? parseTime(options.startTime) : null;
+  const endDate = options?.endTime ? parseTime(options.endTime) : null;
+  const blockId = options?.blockId && options.blockId !== "geral" ? options.blockId : null;
 
-  const [endHour, endMin] = endTimeStr.split(":").map(Number);
-  const endDate = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    endHour,
-    endMin,
-  );
-
-  await prisma.task.create({
+  const task = await prisma.task.create({
     data: {
-      title,
-      description,
+      title: title.trim(),
+      description: description || null,
       startTime: startDate,
       endTime: endDate,
-      category: category || "deepwork",
+      category: options?.category || "geral",
       userId,
-      ...(blockId && blockId !== "geral" ? { blockId } : {}),
+      ...(blockId ? { blockId } : {}),
     },
   });
 
   revalidatePath("/");
-  return { success: "Bloco injetado no fluxo." };
+  return {
+    success: "Tarefa adicionada.",
+    task: {
+      id: task.id,
+      title: task.title,
+      description: task.description || undefined,
+      isCompleted: task.isCompleted,
+      category: task.category,
+      blockId: task.blockId || undefined,
+      startTime: task.startTime
+        ? task.startTime.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+        : undefined,
+      endTime: task.endTime
+        ? task.endTime.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+        : undefined,
+    },
+  };
 }
 
 export async function toggleTaskStatus(id: string, currentStatus: boolean) {
-  const cookieStore = await cookies();
-  const userId = cookieStore.get("flow_session")?.value;
-  if (!userId) return { error: "Não autorizado" };
-
-  const task = await prisma.task.findFirst({
-    where: { id, userId },
-  });
-  if (!task) return { error: "Tarefa não encontrada ou não autorizada" };
+  const userId = await getSessionUserId();
+  const task = await prisma.task.findFirst({ where: { id, userId } });
+  if (!task) return { error: "Tarefa não encontrada." };
 
   await prisma.task.update({
     where: { id },
     data: { isCompleted: !currentStatus },
   });
   revalidatePath("/");
-  return { success: currentStatus ? "Bloco restaurado." : "Bloco concluído." };
+  return { success: currentStatus ? "Tarefa restaurada." : "Tarefa concluída!" };
 }
 
 export async function deleteTask(id: string) {
-  const cookieStore = await cookies();
-  const userId = cookieStore.get("flow_session")?.value;
-  if (!userId) return { error: "Não autorizado" };
+  const userId = await getSessionUserId();
+  const task = await prisma.task.findFirst({ where: { id, userId } });
+  if (!task) return { error: "Tarefa não encontrada." };
 
-  const task = await prisma.task.findFirst({
-    where: { id, userId },
-  });
-  if (!task) return { error: "Tarefa não encontrada ou não autorizada" };
-
-  await prisma.task.delete({
-    where: { id },
-  });
+  await prisma.task.delete({ where: { id } });
   revalidatePath("/");
-  return { success: "Bloco eliminado." };
+  return { success: "Tarefa removida." };
 }
 
-export async function updateTask(id: string, formData: FormData) {
-  const title = formData.get("title") as string;
-  const description = formData.get("description") as string;
-  const startTimeStr = formData.get("startTime") as string;
-  const endTimeStr = formData.get("endTime") as string;
+export async function updateTask(
+  id: string,
+  updates: {
+    title?: string;
+    description?: string;
+    startTime?: string | null;
+    endTime?: string | null;
+    category?: string;
+  }
+) {
+  const userId = await getSessionUserId();
+  const task = await prisma.task.findFirst({ where: { id, userId } });
+  if (!task) return { error: "Tarefa não encontrada." };
 
-  if (!title) return { error: "O título é obrigatório." };
-  if (!startTimeStr || !endTimeStr) {
-    return { error: "Os horários são obrigatórios." };
+  if (updates.title !== undefined) {
+    if (!updates.title.trim()) return { error: "O título é obrigatório." };
+    if (hasOffensiveContent(updates.title)) {
+      return { error: "O conteúdo contém termos ofensivos não permitidos." };
+    }
   }
 
-  const cookieStore = await cookies();
-  const userId = cookieStore.get("flow_session")?.value;
-  if (!userId) return { error: "Não autorizado" };
+  const data: Record<string, unknown> = {};
+  if (updates.title !== undefined) data.title = updates.title.trim();
+  if (updates.description !== undefined) data.description = updates.description || null;
+  if (updates.category !== undefined) data.category = updates.category;
+  if (updates.startTime !== undefined) {
+    data.startTime = updates.startTime ? parseTime(updates.startTime) : null;
+  }
+  if (updates.endTime !== undefined) {
+    data.endTime = updates.endTime ? parseTime(updates.endTime) : null;
+  }
 
-  const task = await prisma.task.findFirst({
-    where: { id, userId },
-  });
-  if (!task) return { error: "Tarefa não encontrada ou não autorizada" };
-
-  const now = new Date();
-  const [startHour, startMin] = startTimeStr.split(":").map(Number);
-  const startDate = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    startHour,
-    startMin,
-  );
-
-  const [endHour, endMin] = endTimeStr.split(":").map(Number);
-  const endDate = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    endHour,
-    endMin,
-  );
-
-  await prisma.task.update({
-    where: { id },
-    data: {
-      title,
-      description,
-      startTime: startDate,
-      endTime: endDate,
-    },
-  });
-
+  await prisma.task.update({ where: { id }, data });
   revalidatePath("/");
-  return { success: "Bloco atualizado com sucesso." };
+  return { success: "Tarefa atualizada." };
 }
 
 export async function completeAllTasks() {
-  const cookieStore = await cookies();
-  const userId = cookieStore.get("flow_session")?.value;
-  if (!userId) return { error: "Não autorizado" };
-
-  const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  const userId = await getSessionUserId();
+  const { startOfDay, endOfDay } = getTodayRange();
 
   await prisma.task.updateMany({
     where: {
       userId,
-      startTime: {
-        gte: startOfDay,
-        lte: endOfDay,
-      },
+      isCompleted: false,
+      createdAt: { lte: endOfDay },
     },
     data: { isCompleted: true },
   });
 
   revalidatePath("/");
-  return { success: "Todos os fluxos foram concluídos." };
+  return { success: "Todas as tarefas foram concluídas!" };
 }
 
 export async function deleteAllTasks() {
-  const cookieStore = await cookies();
-  const userId = cookieStore.get("flow_session")?.value;
-  if (!userId) return { error: "Não autorizado" };
-
-  const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  const userId = await getSessionUserId();
+  const { startOfDay, endOfDay } = getTodayRange();
 
   await prisma.task.deleteMany({
     where: {
       userId,
-      startTime: {
-        gte: startOfDay,
-        lte: endOfDay,
-      },
+      OR: [
+        { createdAt: { gte: startOfDay, lte: endOfDay } },
+        { isCompleted: false, createdAt: { lt: startOfDay } },
+        { updatedAt: { gte: startOfDay }, createdAt: { lt: startOfDay } },
+      ],
     },
   });
 
   revalidatePath("/");
-  return { success: "Todos os fluxos foram eliminados." };
+  return { success: "Todas as tarefas foram removidas." };
 }

@@ -10,36 +10,26 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-slate-100 selection:bg-purple-500">
-      <div className="absolute inset-0 bg-noise z-0 mix-blend-overlay"></div>
-
+    <div className="min-h-screen bg-[#0a0a0f] text-slate-100 selection:bg-purple-500">
       <div className="relative z-10">
-        <nav className="border-b border-white/10 p-6 flex justify-between items-center bg-[#0a0a0a]/80 backdrop-blur-md sticky top-0 z-50">
+        <nav className="border-b border-white/[0.06] px-5 py-4 flex justify-between items-center bg-[#0a0a0f]/80 backdrop-blur-md sticky top-0 z-50">
           <Logo size="sm" />
-          <div className="flex gap-6 items-center">
-            <div className="flex gap-2 items-center">
-              <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-xs font-mono opacity-50 uppercase tracking-widest">
-                Live Sync
-              </span>
-            </div>
-
-            <div className="flex items-center gap-4 border-l border-white/10 pl-6">
-              <ShareButton />
-              <form action={logout} className="flex items-center">
-                <button
-                  type="submit"
-                  className="text-white/50 hover:text-red-400 transition-colors cursor-pointer"
-                  title="Desconectar"
-                >
-                  <LogOut size={18} />
-                </button>
-              </form>
-            </div>
+          <div className="flex items-center gap-3">
+            <ShareButton />
+            <div className="w-px h-5 bg-white/[0.06]" />
+            <form action={logout} className="flex items-center">
+              <button
+                type="submit"
+                className="text-white/30 hover:text-red-400 transition-colors cursor-pointer p-1.5 rounded-lg hover:bg-white/5"
+                title="Sair"
+              >
+                <LogOut size={16} />
+              </button>
+            </form>
           </div>
         </nav>
 
-        <main className="max-w-4xl mx-auto p-6 pb-24">{children}</main>
+        <main className="max-w-2xl mx-auto px-5 pb-40">{children}</main>
       </div>
     </div>
   );

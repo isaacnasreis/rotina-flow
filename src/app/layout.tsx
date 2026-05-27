@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Flow State | Rotina",
-  description: "Sistema experimental de rotinas para o dia a dia",
+  title: "Rotina Flow",
+  description: "Organize seu dia com rapidez — abra, digite, faça.",
 };
 
 import { Toaster } from "@/components/ui/Toaster";
@@ -15,8 +15,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <body className="antialiased bg-transparent text-white">
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body className="antialiased bg-transparent text-white" suppressHydrationWarning>
         <DynamicBackground />
         {children}
         <Toaster />

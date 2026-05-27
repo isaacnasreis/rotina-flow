@@ -69,7 +69,7 @@ export function Logo({ size = "md", className = "", withText = true }: LogoProps
             size === "sm" ? "text-lg" : size === "lg" ? "text-4xl" : "text-2xl"
           }`}
         >
-          Flow <span className="text-purple-500">State</span>
+          Rotina <span className="text-purple-500">Flow</span>
         </h1>
       )}
     </div>
