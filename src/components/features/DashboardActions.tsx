@@ -70,7 +70,6 @@ export function DashboardActions() {
               <History size={16} />
               <span>Logbook</span>
             </Link>
-            </Link>
           </div>
         </>
       )}
