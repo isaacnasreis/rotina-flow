@@ -2,7 +2,9 @@
 
 import { Toaster as Sonner } from "sonner";
 
-export function Toaster() {
+type ToasterProps = React.ComponentProps<typeof Sonner>;
+
+export function Toaster({ ...props }: ToasterProps) {
   return (
     <Sonner
       theme="dark"
@@ -18,6 +20,7 @@ export function Toaster() {
             "group-[.toast]:bg-zinc-800 group-[.toast]:text-zinc-400",
         },
       }}
+      {...props}
     />
   );
 }

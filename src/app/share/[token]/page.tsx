@@ -49,6 +49,7 @@ export default async function SharedRoutinePage({ params }: SharePageProps) {
     isCompleted: task.isCompleted,
     category: task.category,
     blockId: task.blockId || undefined,
+    createdAt: task.createdAt,
   }));
 
   const pendingTasks = mappedTasks.filter((t) => !t.isCompleted);
