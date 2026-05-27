@@ -1,6 +1,20 @@
 @import "tailwindcss";
 
-:root {
+@theme {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-hover: var(--bg-card-hover);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-active: var(--border-active);
+  --color-accent: var(--accent);
+  --color-accent-glow: var(--accent-glow);
+  --color-success: var(--success);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+}
+
+:root, :root[data-theme="dark"] {
   --bg-primary: #0a0a0f;
   --bg-card: rgba(255, 255, 255, 0.03);
   --bg-card-hover: rgba(255, 255, 255, 0.06);
@@ -12,6 +26,37 @@
   --text-primary: #f1f5f9;
   --text-secondary: rgba(255, 255, 255, 0.5);
   --text-muted: rgba(255, 255, 255, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-active: rgba(147, 51, 234, 0.5);
+  --accent: #9333ea;
+  --accent-glow: rgba(147, 51, 234, 0.15);
+  --success: #16a34a;
+  --text-primary: #0f172a;
+  --text-secondary: rgba(0, 0, 0, 0.6);
+  --text-muted: rgba(0, 0, 0, 0.4);
+  --glass-border: rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="oled"] {
+  --bg-primary: #000000;
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --bg-card-hover: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.15);
+  --border-active: rgba(168, 85, 247, 0.7);
+  --accent: #c084fc;
+  --accent-glow: rgba(192, 132, 252, 0.2);
+  --success: #22c55e;
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.3);
+  --glass-border: rgba(255, 255, 255, 0.2);
 }
 
 /* === Animations === */

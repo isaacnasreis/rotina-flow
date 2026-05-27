@@ -9,6 +9,8 @@ export const metadata: Metadata = {
 import { Toaster } from "@/components/ui/Toaster";
 import { DynamicBackground } from "@/components/layout/DynamicBackground";
 
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -16,10 +18,33 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className="antialiased bg-transparent text-white" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const stored = localStorage.getItem('rotina-settings');
+                if (stored) {
+                  const state = JSON.parse(stored).state;
+                  if (state && state.theme) {
+                    document.documentElement.setAttribute('data-theme', state.theme);
+                  }
+                } else {
+                  document.documentElement.setAttribute('data-theme', 'dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
+      <body
+        className="antialiased bg-bg-primary min-h-screen text-text-primary"
+        suppressHydrationWarning
+      >
+        <ThemeProvider />
         <DynamicBackground />
         {children}
-        <Toaster />
+        <Toaster theme="dark" position="bottom-center" />
       </body>
     </html>
   );
