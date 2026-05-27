@@ -13,10 +13,10 @@ export function DynamicBackground() {
   }, []);
 
   const gradients: Record<string, string> = {
-    morning: "from-orange-950/40 via-[#0a0a0a] to-[#0a0a0a]",
-    afternoon: "from-blue-950/40 via-[#0a0a0a] to-[#0a0a0a]",
-    evening: "from-purple-950/40 via-[#0a0a0a] to-[#0a0a0a]",
-    night: "from-indigo-950/30 via-[#0a0a0a] to-[#0a0a0a]",
+    morning: "from-orange-500/10 dark:from-orange-950/40 via-bg-primary to-bg-primary",
+    afternoon: "from-blue-500/10 dark:from-blue-950/40 via-bg-primary to-bg-primary",
+    evening: "from-purple-500/10 dark:from-purple-950/40 via-bg-primary to-bg-primary",
+    night: "from-indigo-500/10 dark:from-indigo-950/30 via-bg-primary to-bg-primary",
   };
 
   return (

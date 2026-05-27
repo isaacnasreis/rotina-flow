@@ -105,14 +105,11 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
       style={{ ...style, animationDelay: style?.animationDelay || "0ms" }}
     >
       <div
-        className={`
-          flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-200
-          ${task.isCompleted
-            ? "bg-white/[0.02]"
-            : "bg-white/[0.03] hover:bg-white/[0.06]"
-          }
-          ${justCompleted ? "animate-sparkle" : ""}
-        `}
+        className={`group flex items-center gap-4 py-4 px-5 rounded-2xl transition-all duration-300 relative overflow-hidden ${
+          task.isCompleted
+            ? "task-completed"
+            : "bg-bg-card hover:bg-bg-card-hover border border-border-subtle hover:border-glass-border"
+        } ${justCompleted ? "animate-sparkle" : ""}`}
       >
         {/* Checkbox Circle */}
         <button
@@ -123,8 +120,8 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
             relative flex-shrink-0 w-6 h-6 rounded-full border-2 transition-all duration-300
             flex items-center justify-center
             ${task.isCompleted
-              ? "bg-purple-500 border-purple-500 scale-100"
-              : "border-white/20 hover:border-purple-400 hover:scale-110"
+              ? "bg-accent border-accent scale-100"
+              : "border-border-subtle hover:border-accent hover:scale-110"
             }
             ${isPendingToggle ? "opacity-50" : ""}
             ${isReadOnly ? "" : "cursor-pointer"}
@@ -132,9 +129,9 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
           aria-label={task.isCompleted ? "Desmarcar tarefa" : "Concluir tarefa"}
         >
           {isPendingToggle ? (
-            <Loader2 size={12} className="animate-spin text-white/60" />
+            <Loader2 size={12} className="animate-spin text-text-muted" />
           ) : task.isCompleted ? (
-            <Check size={12} className="text-white animate-check-pop" strokeWidth={3} />
+            <Check size={12} className="text-bg-primary animate-check-pop" strokeWidth={3} />
           ) : null}
         </button>
 
@@ -148,7 +145,7 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
               onChange={(e) => setEditValue(e.target.value)}
               onBlur={handleTitleSave}
               onKeyDown={handleTitleKeyDown}
-              className="w-full bg-transparent text-[15px] font-medium outline-none text-white caret-purple-400"
+              className="w-full bg-bg-card border border-border-subtle rounded-md px-2 py-1 text-sm text-text-primary focus:outline-none focus:border-accent"
               autoFocus
             />
           ) : (
@@ -162,7 +159,7 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
               }}
               className={`
                 text-left w-full text-[15px] font-medium leading-snug truncate
-                ${task.isCompleted ? "task-completed text-white/40" : "text-white/90"}
+                ${task.isCompleted ? "task-completed text-text-muted" : "text-text-primary"}
                 ${!isReadOnly ? "cursor-text" : ""}
               `}
             >
@@ -180,7 +177,7 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
                 </span>
               )}
               {hasTimeInfo && (
-                <span className="inline-flex items-center gap-1 text-[11px] text-white/25 font-mono">
+                <span className="inline-flex items-center gap-1 text-[11px] text-text-muted font-mono">
                   <Clock size={10} className="opacity-50" />
                   {task.startTime}
                   {task.endTime && ` - ${task.endTime}`}
@@ -203,7 +200,7 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
               e.stopPropagation();
               setIsMenuOpen(!isMenuOpen);
             }}
-            className="cursor-pointer flex-shrink-0 p-1.5 rounded-lg bg-white/[0.04] text-white/40 hover:bg-white/10 hover:text-white/90 transition-all border border-white/[0.02]"
+            className="cursor-pointer flex-shrink-0 p-1.5 rounded-lg bg-bg-card text-text-muted hover:bg-bg-card-hover hover:text-text-primary transition-all border border-border-subtle"
             aria-label="Opções e detalhes"
           >
             <Settings2 size={15} />
@@ -220,25 +217,25 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
           />
           <div
             ref={menuRef}
-            className="absolute right-0 top-full mt-2 z-50 w-64 glass-card p-3 shadow-xl shadow-black/40 animate-fade-in"
+            className="absolute right-0 top-full mt-2 w-56 rounded-xl bg-bg-primary border border-border-subtle shadow-2xl p-2 z-50 animate-fade-in origin-top-right"
           >
             {/* Close button */}
-            <div className="flex justify-between items-center mb-3 pb-2 border-b border-white/5">
-              <span className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Opções</span>
+            <div className="flex justify-between items-center mb-3 pb-2 border-b border-border-subtle">
+              <span className="text-[10px] uppercase tracking-widest text-text-muted font-bold">Opções</span>
               <button
                 type="button"
                 onClick={() => setIsMenuOpen(false)}
-                className="cursor-pointer p-1 hover:bg-white/5 rounded-md transition-colors"
+                className="cursor-pointer p-1 hover:bg-bg-card rounded-md transition-colors"
               >
-                <X size={12} className="text-white/40" />
+                <X size={12} className="text-text-muted" />
               </button>
             </div>
 
             {/* Quick Time Setter */}
             <div className="mb-3">
               <div className="flex items-center gap-1.5 mb-2">
-                <Clock size={12} className="text-purple-400" />
-                <span className="text-[11px] text-white/40 font-medium">Horário</span>
+                <Clock size={12} className="text-accent" />
+                <span className="text-[11px] text-text-muted font-medium">Horário</span>
               </div>
               <div className="grid grid-cols-4 gap-1.5">
                 {[
@@ -254,7 +251,7 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
                       const { start, end } = preset.getTime();
                       handleTimeSet(start, end);
                     }}
-                    className="cursor-pointer px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg bg-white/5 hover:bg-purple-500/20 hover:text-purple-300 text-white/40 transition-all"
+                    className="cursor-pointer px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg bg-bg-card hover:bg-accent/20 hover:text-accent text-text-muted transition-all"
                   >
                     {preset.label}
                   </button>
@@ -265,22 +262,18 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
             {/* Category Selector */}
             <div className="mb-3">
               <div className="flex items-center gap-1.5 mb-2">
-                <Tag size={12} className="text-purple-400" />
-                <span className="text-[11px] text-white/40 font-medium">Categoria</span>
+                <Tag size={12} className="text-accent" />
+                <span className="text-[11px] text-text-muted font-medium">Categoria</span>
               </div>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-col gap-1">
                 {ENERGY_TAGS.map((tag) => (
                   <button
                     key={tag.id}
                     type="button"
                     onClick={() => handleCategorySelect(tag.id)}
-                    className={`
-                      cursor-pointer px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full transition-all
-                      ${task.category === tag.id
-                        ? `${tag.bg} ${tag.text} border ${tag.border}`
-                        : "bg-white/5 text-white/30 hover:bg-white/10 hover:text-white/50"
-                      }
-                    `}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                      task.category === tag.id ? 'bg-bg-card-hover text-text-primary' : 'text-text-secondary hover:bg-bg-card'
+                    }`}
                   >
                     {tag.label}
                   </button>
@@ -289,11 +282,12 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
             </div>
 
             {/* Delete */}
+            <div className="h-px bg-border-subtle my-2 mx-1" />
             <button
               type="button"
               onClick={handleDelete}
               disabled={isPendingDelete}
-              className="cursor-pointer w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-400/70 hover:bg-red-500/10 hover:text-red-400 transition-all text-xs font-medium border-t border-white/5 mt-1 pt-3"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors"
             >
               {isPendingDelete ? (
                 <Loader2 size={13} className="animate-spin" />

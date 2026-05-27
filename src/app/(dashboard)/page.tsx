@@ -6,11 +6,13 @@ import { DynamicBackground } from "@/components/layout/DynamicBackground";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getDictionary } from "@/i18n/server";
 import { DashboardActions } from "@/components/features/DashboardActions";
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();
   const userId = cookieStore.get("flow_session")?.value;
+  const dict = await getDictionary();
 
   if (!userId) {
     redirect("/login");
@@ -83,28 +85,17 @@ export default async function DashboardPage() {
     <>
       <DynamicBackground />
 
-      <section className="pt-8">
-        {/* Header with date and progress */}
-        <header className="flex items-center justify-between mb-10">
+      <section className="pt-8 pb-32 max-w-lg mx-auto px-4 md:px-0">
+        <header className="flex items-end justify-between mb-10">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-white/90">
-              Rotina do dia
-            </h2>
-            <p className="text-sm text-white/30 mt-1 capitalize">
-              {now.toLocaleDateString("pt-BR", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-              })}
+            <h1 className="text-[28px] font-bold tracking-tight text-text-primary leading-tight">
+              {dict.dashboard.title}
+            </h1>
+            <p className="text-text-secondary mt-1">
+              <span className="text-accent font-semibold">{completedCount}</span> {dict.dashboard.completed}
             </p>
           </div>
-
-          <div className="flex items-center gap-4">
-            {totalCount > 0 && (
-              <DashboardActions />
-            )}
-            <ProgressRing completed={completedCount} total={totalCount} size={72} />
-          </div>
+          <DashboardActions />
         </header>
 
         {/* Task List */}
@@ -113,32 +104,40 @@ export default async function DashboardPage() {
         ) : (
           <div className="space-y-1.5">
             {/* Pending tasks first */}
-            {pendingTasks.map((task, i) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                style={{ animationDelay: `${i * 50}ms` }}
-              />
-            ))}
-
-            {/* Completed section */}
-            {completedTasks.length > 0 && pendingTasks.length > 0 && (
-              <div className="flex items-center gap-3 py-4 px-1">
-                <div className="h-px flex-1 bg-white/[0.04]" />
-                <span className="text-[10px] uppercase tracking-widest text-white/15 font-bold">
-                  Concluídas
-                </span>
-                <div className="h-px flex-1 bg-white/[0.04]" />
+            {pendingTasks.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-4 px-1">
+                  {dict.dashboard.pending} ({pendingTasks.length})
+                </h2>
+                <div className="space-y-2">
+                  {pendingTasks.map((task, index) => (
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    />
+                  ))}
+                </div>
               </div>
             )}
 
-            {completedTasks.map((task, i) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                style={{ animationDelay: `${(pendingTasks.length + i) * 50}ms` }}
-              />
-            ))}
+            {/* Completed section */}
+            {completedTasks.length > 0 && (
+              <div className="opacity-60 hover:opacity-100 transition-opacity duration-300">
+                <h2 className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-4 px-1">
+                  {dict.dashboard.completedTasks} ({completedTasks.length})
+                </h2>
+                <div className="space-y-2">
+                  {completedTasks.map((task, index) => (
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      style={{ animationDelay: `${(pendingTasks.length + index) * 50}ms` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </section>

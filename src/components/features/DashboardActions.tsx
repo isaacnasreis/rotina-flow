@@ -1,7 +1,7 @@
 "use client";
 
 import { completeAllTasks, deleteAllTasks } from "@/actions/task";
-import { CheckCircle2, Trash2, MoreVertical, History } from "lucide-react";
+import { CheckCircle2, Trash2, MoreVertical, History, Settings } from "lucide-react";
 import { useState, useRef, useTransition } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -35,7 +35,7 @@ export function DashboardActions() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-full hover:bg-white/5 text-white/40 hover:text-white/80 transition-colors"
+        className="p-2 rounded-full hover:bg-bg-card-hover text-text-muted hover:text-text-primary transition-colors"
         disabled={isPending}
       >
         <MoreVertical size={20} />
@@ -50,25 +50,32 @@ export function DashboardActions() {
           >
             <button
               onClick={handleCompleteAll}
-              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-white/5 transition-colors text-emerald-400"
+              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-bg-card-hover transition-colors text-success"
             >
               <CheckCircle2 size={16} />
               <span>Concluir Todas</span>
             </button>
             <button
               onClick={handleDeleteAll}
-              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-white/5 transition-colors text-red-400"
+              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-bg-card-hover transition-colors text-red-500"
             >
               <Trash2 size={16} />
               <span>Limpar Todas</span>
             </button>
-            <div className="h-px w-full bg-white/5 my-1" />
+            <div className="h-px w-full bg-border-subtle my-1" />
             <Link
               href="/history"
-              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-white/5 transition-colors text-white/70 hover:text-white"
+              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-bg-card-hover transition-colors text-text-secondary hover:text-text-primary"
             >
               <History size={16} />
               <span>Logbook</span>
+            </Link>
+            <Link
+              href="/settings"
+              className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-bg-card-hover transition-colors text-text-secondary hover:text-text-primary"
+            >
+              <Settings size={16} />
+              <span>Configurações</span>
             </Link>
           </div>
         </>

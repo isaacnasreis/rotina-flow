@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type TimeOfDay = "morning" | "afternoon" | "evening" | "night";
 
@@ -12,23 +13,11 @@ function getTimeOfDay(): TimeOfDay {
   return "night";
 }
 
-const messages: Record<TimeOfDay, { title: string; subtitle: string }> = {
-  morning: {
-    title: "Bom dia! ☀️",
-    subtitle: "Comece adicionando sua primeira tarefa do dia.",
-  },
-  afternoon: {
-    title: "A tarde é sua 🌤",
-    subtitle: "O que vamos conquistar agora?",
-  },
-  evening: {
-    title: "Boa noite 🌙",
-    subtitle: "Planeje o amanhã ou finalize o que ficou pendente.",
-  },
-  night: {
-    title: "Sessão noturna 🌌",
-    subtitle: "Registre suas ideias antes de descansar.",
-  },
+const messagesKeys: Record<TimeOfDay, { titleKey: string; subKey: string }> = {
+  morning: { titleKey: "morningTitle", subKey: "morningSub" },
+  afternoon: { titleKey: "afternoonTitle", subKey: "afternoonSub" },
+  evening: { titleKey: "eveningTitle", subKey: "eveningSub" },
+  night: { titleKey: "nightTitle", subKey: "nightSub" },
 };
 
 function MorningSVG() {
@@ -157,20 +146,21 @@ const svgMap: Record<TimeOfDay, React.FC> = {
 
 export function EmptyState() {
   const [time, setTime] = useState<TimeOfDay>("morning");
+  const t = useTranslation();
 
   useEffect(() => {
     setTime(getTimeOfDay());
   }, []);
 
   const SVGComponent = svgMap[time];
-  const { title, subtitle } = messages[time];
+  const { titleKey, subKey } = messagesKeys[time];
 
   return (
     <div className="flex flex-col items-center justify-center py-16 animate-fade-in select-none">
       <SVGComponent />
-      <h3 className="text-xl font-bold mt-8 text-white/80">{title}</h3>
-      <p className="text-sm text-white/30 mt-2 text-center max-w-[260px] leading-relaxed">
-        {subtitle}
+      <h3 className="text-xl font-bold mt-8 text-text-primary">{t.empty[titleKey as keyof typeof t.empty]}</h3>
+      <p className="text-sm text-text-muted mt-2 text-center max-w-[260px] leading-relaxed">
+        {t.empty[subKey as keyof typeof t.empty]}
       </p>
     </div>
   );

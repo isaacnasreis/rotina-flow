@@ -3,12 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Check, History, Clock } from "lucide-react";
+import { getDictionary } from "@/i18n/server";
 import { ENERGY_TAGS } from "@/lib/constants";
 
 export default async function HistoryPage() {
   const cookieStore = await cookies();
   const userId = cookieStore.get("flow_session")?.value;
+  const dict = await getDictionary();
 
   if (!userId) {
     redirect("/login");
@@ -52,74 +54,85 @@ export default async function HistoryPage() {
   });
 
   const getTag = (id: string) => ENERGY_TAGS.find(t => t.id === id);
+  const formatTime = (date: Date | null | undefined) => 
+    date ? new Date(date).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' }) : "";
 
   return (
     <>
       <DynamicBackground />
 
-      <section className="pt-8 pb-20">
+      <section className="pt-8 pb-20 max-w-lg mx-auto">
         <header className="flex items-center gap-4 mb-10">
           <Link
             href="/"
-            className="p-2 -ml-2 rounded-full hover:bg-white/5 text-white/40 hover:text-white/80 transition-colors"
+            className="p-2 -ml-2 rounded-full hover:bg-bg-card-hover text-text-muted hover:text-text-primary transition-colors"
           >
             <ArrowLeft size={20} />
           </Link>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-white/90">
-              Minhas Conquistas
-            </h2>
-            <p className="text-sm text-white/30 mt-1">
-              {tasks.length} {tasks.length === 1 ? "tarefa concluída" : "tarefas concluídas"} no passado
+            <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+              {dict.history.title}
+            </h1>
+            <p className="text-sm text-text-secondary mt-1">
+              {tasks.length} {dict.dashboard.completed} {dict.history.completedPast}
             </p>
           </div>
         </header>
 
-        {Object.keys(groupedTasks).length === 0 ? (
+        {tasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
-            <div className="w-16 h-16 mb-4 rounded-full bg-white/[0.02] flex items-center justify-center border border-white/[0.05]">
-              <CheckCircle2 size={24} className="text-white/20" />
+            <div className="w-16 h-16 rounded-full bg-bg-card border border-border-subtle flex items-center justify-center mb-4">
+              <History className="text-text-muted" size={24} />
             </div>
-            <h3 className="text-lg font-medium text-white/80 mb-2">Nenhum histórico ainda</h3>
-            <p className="text-[13px] text-white/40 max-w-[250px] mx-auto leading-relaxed">
-              Suas tarefas concluídas em dias anteriores aparecerão aqui como um arquivo de conquistas.
+            <h3 className="text-lg font-medium text-text-primary">{dict.history.emptyState}</h3>
+            <p className="text-sm text-text-muted mt-2 max-w-[240px]">
+              {dict.history.emptyDescription}
             </p>
           </div>
         ) : (
           <div className="space-y-8">
-            {Object.entries(groupedTasks).map(([dateLabel, dayTasks], groupIndex) => (
+            {Object.entries(groupedTasks).map(([date, dateTasks], groupIndex) => (
               <div 
-                key={dateLabel} 
+                key={date} 
                 className="animate-fade-in"
                 style={{ animationDelay: `${groupIndex * 100}ms` }}
               >
-                <div className="flex items-center gap-3 py-2 mb-3">
-                  <span className="text-[11px] uppercase tracking-widest text-white/30 font-bold capitalize">
-                    {dateLabel}
-                  </span>
-                  <div className="h-px flex-1 bg-white/[0.04]" />
-                </div>
-                
-                <div className="space-y-1.5">
-                  {dayTasks.map((task) => {
-                    const tag = task.category ? getTag(task.category) : null;
+                <h2 className="text-sm font-bold uppercase tracking-widest text-text-muted mb-4 sticky top-4 bg-bg-primary/80 backdrop-blur-md py-2 z-10">
+                  {date}
+                </h2>
+                <div className="space-y-2">
+                  {dateTasks.map((task, i) => {
+                    const tagData = task.category ? getTag(task.category) : null;
+                    const hasTimeInfo = task.startTime || task.endTime;
                     return (
                       <div
                         key={task.id}
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.015] border border-white/[0.03]"
+                        className="group flex items-center gap-4 py-4 px-5 rounded-2xl bg-bg-card border border-border-subtle hover:border-glass-border transition-all animate-fade-in"
+                        style={{ animationDelay: `${i * 50}ms` }}
                       >
-                        <div className="relative flex-shrink-0 w-5 h-5 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
-                          <CheckCircle2 size={10} className="text-purple-400" />
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-accent border-2 border-accent flex items-center justify-center">
+                          <Check size={12} className="text-bg-primary" strokeWidth={3} />
                         </div>
+                        
                         <div className="flex-1 min-w-0">
-                          <span className="text-[14px] text-white/60 font-medium truncate block">
+                          <span className="text-[15px] font-medium leading-snug truncate block text-text-primary">
                             {task.title}
                           </span>
-                          {tag && (
-                            <span className={`inline-block mt-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm ${tag.bg} ${tag.text} opacity-60`}>
-                              {tag.label}
-                            </span>
-                          )}
+                          
+                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                            {hasTimeInfo && (
+                              <span className="inline-flex items-center gap-1 text-[11px] text-text-muted font-mono">
+                                <Clock size={10} className="opacity-50" />
+                                {formatTime(task.startTime)}
+                                {task.endTime && ` - ${formatTime(task.endTime)}`}
+                              </span>
+                            )}
+                            {tagData && (
+                              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${tagData.bg} ${tagData.text}`}>
+                                {tagData.label}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
