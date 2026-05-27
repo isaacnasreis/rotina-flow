@@ -271,7 +271,7 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
                     key={tag.id}
                     type="button"
                     onClick={() => handleCategorySelect(tag.id)}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
                       task.category === tag.id ? 'bg-bg-card-hover text-text-primary' : 'text-text-secondary hover:bg-bg-card'
                     }`}
                   >
@@ -287,7 +287,7 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
               type="button"
               onClick={handleDelete}
               disabled={isPendingDelete}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer disabled:cursor-default disabled:opacity-50"
             >
               {isPendingDelete ? (
                 <Loader2 size={13} className="animate-spin" />

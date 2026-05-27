@@ -57,10 +57,10 @@ export function QuickInput() {
         {/* Expanded options (future: time/category) */}
         {isExpanded && (
           <div className="glass-card mb-2 p-4 animate-slide-up">
-            <p className="text-[11px] text-white/30 uppercase tracking-widest font-bold mb-3">
+            <p className="text-[11px] text-text-muted uppercase tracking-widest font-bold mb-3">
               Opções rápidas
             </p>
-            <p className="text-xs text-white/20 italic">
+            <p className="text-xs text-text-secondary italic">
               Use o menu &quot;···&quot; em cada tarefa para adicionar horário e categoria.
             </p>
           </div>
@@ -81,8 +81,8 @@ export function QuickInput() {
               cursor-pointer flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center
               transition-all duration-200
               ${isExpanded
-                ? "bg-purple-500/20 text-purple-400 rotate-180"
-                : "bg-white/5 text-white/25 hover:bg-white/10 hover:text-white/40"
+                ? "bg-accent/20 text-accent rotate-180"
+                : "bg-bg-card-hover text-text-muted hover:bg-border-subtle hover:text-text-primary"
               }
             `}
             aria-label="Expandir opções"
@@ -101,7 +101,7 @@ export function QuickInput() {
             disabled={isPending}
             className={`
               flex-1 bg-transparent text-[15px] font-medium outline-none
-              placeholder:text-white/20 text-white caret-purple-400
+              placeholder:text-text-muted text-text-primary caret-accent
               disabled:opacity-50
             `}
             autoComplete="off"
@@ -114,22 +114,22 @@ export function QuickInput() {
               type="button"
               onClick={handleSubmit}
               disabled={isPending}
-              className="cursor-pointer flex-shrink-0 w-8 h-8 rounded-full bg-purple-500 hover:bg-purple-400 disabled:opacity-50 flex items-center justify-center transition-all animate-fade-in"
+              className="cursor-pointer flex-shrink-0 w-8 h-8 rounded-full bg-accent hover:opacity-80 disabled:opacity-50 flex items-center justify-center transition-all animate-fade-in"
               aria-label="Adicionar tarefa"
             >
-              <Plus size={16} className="text-white" />
+              <Plus size={16} className="text-bg-primary" />
             </button>
           )}
         </div>
 
         {/* Keyboard hint */}
-        <p className="text-center text-[10px] text-white/10 mt-2 font-mono tracking-wider">
+        <p className="text-center text-[10px] text-text-muted mt-2 font-mono tracking-wider">
           ENTER para adicionar · ESC para limpar
         </p>
       </div>
 
       {/* Gradient fade above input for visual separation */}
-      <div className="absolute bottom-full left-0 right-0 h-16 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none" />
+      <div className="absolute bottom-full left-0 right-0 h-16 bg-gradient-to-t from-bg-primary to-transparent pointer-events-none" />
     </div>
   );
 }

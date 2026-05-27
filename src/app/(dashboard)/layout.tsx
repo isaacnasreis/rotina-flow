@@ -1,7 +1,7 @@
 import { logout } from "@/actions/auth";
 import { ShareButton } from "@/components/features/ShareButton";
 import { Logo } from "@/components/ui/Logo";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, History } from "lucide-react";
 import React from "react";
 import Link from "next/link";
 
@@ -17,6 +17,13 @@ export default function DashboardLayout({
           <Logo size="sm" />
           <div className="flex items-center gap-2">
             <ShareButton />
+            <Link 
+              href="/history"
+              className="text-text-secondary hover:text-text-primary transition-colors cursor-pointer p-1.5 rounded-lg hover:bg-bg-card-hover"
+              title="Logbook"
+            >
+              <History size={18} />
+            </Link>
             <Link 
               href="/settings"
               className="text-text-secondary hover:text-text-primary transition-colors cursor-pointer p-1.5 rounded-lg hover:bg-bg-card-hover"

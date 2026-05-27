@@ -65,7 +65,7 @@ export default async function HistoryPage() {
         <header className="flex items-center gap-4 mb-10">
           <Link
             href="/"
-            className="p-2 -ml-2 rounded-full hover:bg-bg-card-hover text-text-muted hover:text-text-primary transition-colors"
+            className="p-2 -ml-2 rounded-full hover:bg-bg-card-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer"
           >
             <ArrowLeft size={20} />
           </Link>
