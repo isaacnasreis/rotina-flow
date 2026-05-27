@@ -38,8 +38,8 @@ model Task {
   id          String   @id @default(cuid())
   title       String
   description String?  @db.Text
-  startTime   DateTime
-  endTime     DateTime
+  startTime   DateTime?
+  endTime     DateTime?
   isCompleted Boolean  @default(false)
   category    String   @default("geral")
   userId      String
@@ -47,6 +47,7 @@ model Task {
   blockId     String?
   block       Block?   @relation(fields: [blockId], references: [id], onDelete: SetNull)
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 }
 
 model SharedAccess {

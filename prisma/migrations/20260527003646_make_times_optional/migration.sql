@@ -1,0 +1,21 @@
+-- AlterTable
+ALTER TABLE "Task" ADD COLUMN     "blockId" TEXT,
+ALTER COLUMN "startTime" DROP NOT NULL,
+ALTER COLUMN "endTime" DROP NOT NULL;
+
+-- CreateTable
+CREATE TABLE "Block" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "order" INTEGER NOT NULL DEFAULT 0,
+    "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Block_pkey" PRIMARY KEY ("id")
+);
+
+-- AddForeignKey
+ALTER TABLE "Block" ADD CONSTRAINT "Block_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Task" ADD CONSTRAINT "Task_blockId_fkey" FOREIGN KEY ("blockId") REFERENCES "Block"("id") ON DELETE SET NULL ON UPDATE CASCADE;
