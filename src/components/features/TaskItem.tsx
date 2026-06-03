@@ -1,11 +1,13 @@
 "use client";
 
-import { toggleTaskStatus, deleteTask, updateTask } from "@/actions/task";
 import { Check, MoreHorizontal, Clock, Tag, Trash2, X, Loader2 } from "lucide-react";
 import { useState, useRef, useTransition, useCallback } from "react";
 import { toast } from "sonner";
 import { ENERGY_TAGS } from "@/lib/constants";
 import type { Task } from "@/types";
+import { db, LocalTask } from "@/lib/db";
+import { syncOfflineTasks } from "@/lib/sync";
+import { requestNotificationPermission, scheduleTaskNotification, cancelTaskNotification } from "@/lib/notifications";
 
 interface TaskItemProps {
   task: Task;
@@ -33,23 +35,43 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
     if (!task.isCompleted) {
       setJustCompleted(true);
       setTimeout(() => setJustCompleted(false), 600);
+      cancelTaskNotification(task.id);
     }
     startToggleTransition(async () => {
-      const result = await toggleTaskStatus(task.id, task.isCompleted);
-      if (result?.error) toast.error(result.error);
+      try {
+        await db.tasks.update(task.id, { 
+          isCompleted: !task.isCompleted, 
+          syncStatus: (task as any).syncStatus === 'created' ? 'created' : 'updated',
+          updatedAt: new Date()
+        });
+        syncOfflineTasks();
+      } catch (error) {
+        toast.error("Erro ao atualizar status offline");
+      }
     });
-  }, [task.id, task.isCompleted, isReadOnly]);
+  }, [task.id, task.isCompleted, isReadOnly, task]);
 
   const handleDelete = useCallback(() => {
+    cancelTaskNotification(task.id);
     startDeleteTransition(async () => {
-      const result = await deleteTask(task.id);
-      if (result?.success) toast.success(result.success);
-      if (result?.error) toast.error(result.error);
+      try {
+        if ((task as any).syncStatus === 'created') {
+          // If it was never synced, just delete it locally
+          await db.tasks.delete(task.id);
+        } else {
+          // Soft delete to let SyncEngine remove it from the cloud
+          await db.tasks.update(task.id, { syncStatus: 'deleted', updatedAt: new Date() });
+        }
+        toast.success("Tarefa removida.");
+        syncOfflineTasks();
+      } catch (error) {
+        toast.error("Erro ao deletar tarefa offline.");
+      }
       setIsMenuOpen(false);
     });
-  }, [task.id]);
+  }, [task]);
 
-  const handleTitleSave = useCallback(() => {
+  const handleTitleSave = useCallback(async () => {
     const trimmed = editValue.trim();
     if (!trimmed || trimmed === task.title) {
       setEditValue(task.title);
@@ -57,13 +79,18 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
       return;
     }
     setIsEditing(false);
-    updateTask(task.id, { title: trimmed }).then((result) => {
-      if (result?.error) {
-        toast.error(result.error);
-        setEditValue(task.title);
-      }
-    });
-  }, [editValue, task.id, task.title]);
+    try {
+      await db.tasks.update(task.id, { 
+        title: trimmed, 
+        syncStatus: (task as any).syncStatus === 'created' ? 'created' : 'updated',
+        updatedAt: new Date() 
+      });
+      syncOfflineTasks();
+    } catch (error) {
+      toast.error("Erro ao salvar título offline.");
+      setEditValue(task.title);
+    }
+  }, [editValue, task.id, task.title, task]);
 
   const handleTitleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -80,28 +107,48 @@ export function TaskItem({ task, isReadOnly = false, style }: TaskItemProps) {
   );
 
   const handleCategorySelect = useCallback(
-    (categoryId: string) => {
-      updateTask(task.id, { category: categoryId }).then((result) => {
-        if (result?.error) toast.error(result.error);
-      });
+    async (categoryId: string) => {
+      try {
+        await db.tasks.update(task.id, { 
+          category: categoryId,
+          syncStatus: (task as any).syncStatus === 'created' ? 'created' : 'updated',
+          updatedAt: new Date()
+        });
+        syncOfflineTasks();
+      } catch (error) {
+        toast.error("Erro ao alterar categoria offline.");
+      }
       setIsMenuOpen(false);
     },
-    [task.id]
+    [task]
   );
 
   const handleTimeSet = useCallback(
-    (startTime: string, endTime: string) => {
-      updateTask(task.id, { startTime, endTime }).then((result) => {
-        if (result?.error) toast.error(result.error);
-      });
+    async (startTime: string, endTime: string) => {
+      try {
+        // Here we store strings like "14:00" if the DB type allows, but our DB type allows string? Yes: startTime?: string;
+        // Wait, local DB schema is startTime?: string. But in Vercel it's Date. Our Next.js API handles string to Date.
+        await db.tasks.update(task.id, { 
+          startTime, 
+          endTime,
+          syncStatus: (task as any).syncStatus === 'created' ? 'created' : 'updated',
+          updatedAt: new Date()
+        });
+        syncOfflineTasks();
+        
+        await requestNotificationPermission();
+        await scheduleTaskNotification(task.id, task.title, startTime);
+      } catch (error) {
+        toast.error("Erro ao definir horário offline.");
+      }
       setIsMenuOpen(false);
     },
-    [task.id]
+    [task]
   );
 
   return (
     <div
-      className="group relative animate-fade-in"
+      className={`group relative animate-fade-in ${isMenuOpen ? "z-50" : ""}`}
       style={{ ...style, animationDelay: style?.animationDelay || "0ms" }}
     >
       <div
