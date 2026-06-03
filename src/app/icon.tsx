@@ -1,5 +1,7 @@
 import { ImageResponse } from "next/og";
 
+export const dynamic = "force-static";
+
 // Image metadata for the browser favicon
 export const size = {
   width: 32,

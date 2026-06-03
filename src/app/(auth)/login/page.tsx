@@ -1,13 +1,61 @@
 "use client";
 
-import { login } from "@/actions/auth";
 import { Logo } from "@/components/ui/Logo";
 import { motion } from "framer-motion";
-import { useFormStatus } from "react-dom";
+import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Capacitor } from '@capacitor/core';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && localStorage.getItem("userId")) {
+      router.replace("/");
+    }
+  }, [router]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setPending(true);
+    
+    try {
+      const formData = new FormData(e.currentTarget);
+      const username = formData.get("username") as string;
+      const pin = formData.get("pin") as string;
+
+      const API_URL = Capacitor.isNativePlatform() ? "https://rotina-flow.vercel.app" : "";
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, pin }),
+      });
+      
+      const data = await res.json();
+      
+      if (data.error) {
+        toast.error(data.error);
+      } else {
+        localStorage.setItem("userId", data.userId);
+        router.replace("/");
+      }
+    } catch (error) {
+      toast.error("Erro ao conectar com o servidor.");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const handleOfflineLogin = () => {
+    const offlineId = "offline-" + crypto.randomUUID();
+    localStorage.setItem("userId", offlineId);
+    router.replace("/");
+  };
+
   return (
     <div className="min-h-screen relative flex items-center justify-center p-6 selection:bg-purple-500 overflow-hidden">
       <motion.div
@@ -39,15 +87,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form
-          action={async (formData) => {
-            const res = await login(formData);
-            if (res?.error) {
-              toast.error(res.error);
-            }
-          }}
-          className="space-y-6 bg-white/5 p-8 rounded-3xl border border-white/10"
-        >
+        <form onSubmit={handleSubmit} className="space-y-6 bg-white/5 p-8 rounded-3xl border border-white/10">
           <div>
             <label className="block font-mono text-xs opacity-50 uppercase tracking-widest mb-2 text-white">
               Identificação (Username)
@@ -73,30 +113,37 @@ export default function LoginPage() {
             />
           </div>
 
-          <SubmitButton />
+          <button
+            type="submit"
+            disabled={pending}
+            className="w-full cursor-pointer bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black uppercase tracking-widest py-4 rounded-xl transition-colors mt-4 flex justify-center items-center gap-2"
+          >
+            {pending ? (
+              <>
+                <Loader2 className="animate-spin" size={20} />
+                Sincronizando...
+              </>
+            ) : (
+              "Sincronizar"
+            )}
+          </button>
+
+          <div className="relative flex items-center py-2">
+            <div className="flex-grow border-t border-white/10"></div>
+            <span className="flex-shrink-0 mx-4 text-white/30 font-mono text-xs uppercase tracking-widest">ou</span>
+            <div className="flex-grow border-t border-white/10"></div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleOfflineLogin}
+            disabled={pending}
+            className="w-full cursor-pointer bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-white/80 font-black uppercase tracking-widest py-4 rounded-xl transition-colors flex justify-center items-center gap-2"
+          >
+            Usar Apenas Offline
+          </button>
         </form>
       </motion.div>
     </div>
-  );
-}
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="w-full cursor-pointer bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black uppercase tracking-widest py-4 rounded-xl transition-colors mt-4 flex justify-center items-center gap-2"
-    >
-      {pending ? (
-        <>
-          <Loader2 className="animate-spin" size={20} />
-          Sincronizando...
-        </>
-      ) : (
-        "Sincronizar"
-      )}
-    </button>
   );
 }

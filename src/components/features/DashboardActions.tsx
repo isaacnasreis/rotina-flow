@@ -1,11 +1,12 @@
 "use client";
 
-import { completeAllTasks, deleteAllTasks } from "@/actions/task";
 import { CheckCircle2, Trash2, MoreVertical, History, Settings } from "lucide-react";
 import { useState, useRef, useTransition } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { ShareButton } from "./ShareButton";
+import { db } from "@/lib/db";
+import { syncOfflineTasks } from "@/lib/sync";
 
 export function DashboardActions() {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,8 +15,20 @@ export function DashboardActions() {
 
   const handleCompleteAll = () => {
     startTransition(async () => {
-      const result = await completeAllTasks();
-      if (result?.success) toast.success(result.success);
+      try {
+        const userId = localStorage.getItem("userId");
+        if (!userId) return;
+        const tasks = await db.tasks.where('userId').equals(userId).filter(t => !t.isCompleted && t.syncStatus !== 'deleted').toArray();
+        await Promise.all(tasks.map(t => db.tasks.update(t.id, { 
+          isCompleted: true, 
+          syncStatus: (t as any).syncStatus === 'created' ? 'created' : 'updated', 
+          updatedAt: new Date() 
+        })));
+        toast.success("Todas concluídas.");
+        syncOfflineTasks();
+      } catch (e) {
+        toast.error("Erro ao concluir tarefas.");
+      }
       setIsOpen(false);
     });
   };
@@ -26,8 +39,19 @@ export function DashboardActions() {
     }
 
     startTransition(async () => {
-      const result = await deleteAllTasks();
-      if (result?.success) toast.success(result.success);
+      try {
+        const userId = localStorage.getItem("userId");
+        if (!userId) return;
+        const tasks = await db.tasks.where('userId').equals(userId).filter(t => t.syncStatus !== 'deleted').toArray();
+        await Promise.all(tasks.map(t => {
+          if ((t as any).syncStatus === 'created') return db.tasks.delete(t.id);
+          else return db.tasks.update(t.id, { syncStatus: 'deleted', updatedAt: new Date() });
+        }));
+        toast.success("Todas as tarefas limpas.");
+        syncOfflineTasks();
+      } catch (e) {
+        toast.error("Erro ao limpar tarefas.");
+      }
       setIsOpen(false);
     });
   };

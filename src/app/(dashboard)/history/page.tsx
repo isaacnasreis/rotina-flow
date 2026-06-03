@@ -1,50 +1,50 @@
+"use client";
+
 import { DynamicBackground } from "@/components/layout/DynamicBackground";
-import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Check, History, Clock } from "lucide-react";
-import { getDictionary } from "@/i18n/server";
 import { ENERGY_TAGS } from "@/lib/constants";
+import { db } from "@/lib/db";
+import { useLiveQuery } from "dexie-react-hooks";
+import { useEffect, useState } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 
-export default async function HistoryPage() {
-  const cookieStore = await cookies();
-  const userId = cookieStore.get("flow_session")?.value;
-  const dict = await getDictionary();
+export default function HistoryPage() {
+  const t = useTranslation();
+  const [mounted, setMounted] = useState(false);
+  
+  // No Next.js, window pode ser undefined no primeiro render
+  const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
 
-  if (!userId) {
-    redirect("/login");
-  }
+  useEffect(() => {
+    setMounted(true);
+    if (!userId) {
+      window.location.href = "/login";
+    }
+  }, [userId]);
 
   const now = new Date();
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  // Fetch only completed tasks from previous days
-  const tasks = await prisma.task.findMany({
-    where: {
-      userId,
-      isCompleted: true,
-      createdAt: {
-        lt: startOfToday, // only tasks created before today
-      },
-    },
-    orderBy: {
-      updatedAt: "desc",
-    },
-  });
+  const tasks = useLiveQuery(() => {
+    if (!userId) return [];
+    return db.tasks
+      .where("userId")
+      .equals(userId)
+      .filter((t) => t.isCompleted && t.syncStatus !== "deleted" && new Date(t.createdAt) < startOfToday)
+      .reverse()
+      .sortBy("updatedAt");
+  }, [userId]) || [];
 
-  // Group tasks by Date (updatedAt)
   const groupedTasks: Record<string, typeof tasks> = {};
-  tasks.forEach(task => {
-    // Format to "24 de Maio", "Ontem", etc.
+  tasks.forEach((task) => {
     const date = new Date(task.updatedAt);
     const dateKey = date.toLocaleDateString("pt-BR", {
       weekday: "long",
       day: "numeric",
       month: "long",
     });
-    
-    // Check if it's today or yesterday
+
     const isToday = startOfToday.toDateString() === date.toDateString();
     const isYesterday = new Date(startOfToday.getTime() - 86400000).toDateString() === date.toDateString();
     const finalKey = isToday ? "Hoje, " + dateKey : isYesterday ? "Ontem, " + dateKey : dateKey;
@@ -53,9 +53,11 @@ export default async function HistoryPage() {
     groupedTasks[finalKey].push(task);
   });
 
-  const getTag = (id: string) => ENERGY_TAGS.find(t => t.id === id);
-  const formatTime = (date: Date | null | undefined) => 
-    date ? new Date(date).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' }) : "";
+  const getTag = (id: string) => ENERGY_TAGS.find((t) => t.id === id);
+  const formatTime = (date: Date | null | undefined | string) =>
+    date ? new Date(date).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
+
+  if (!mounted || !userId) return null;
 
   return (
     <>
@@ -71,10 +73,10 @@ export default async function HistoryPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-              {dict.history.title}
+              {t.history.title}
             </h1>
             <p className="text-sm text-text-secondary mt-1">
-              {tasks.length} {dict.dashboard.completed} {dict.history.completedPast}
+              {tasks.length} {t.dashboard.completed} {t.history.completedPast}
             </p>
           </div>
         </header>
@@ -84,16 +86,16 @@ export default async function HistoryPage() {
             <div className="w-16 h-16 rounded-full bg-bg-card border border-border-subtle flex items-center justify-center mb-4">
               <History className="text-text-muted" size={24} />
             </div>
-            <h3 className="text-lg font-medium text-text-primary">{dict.history.emptyState}</h3>
+            <h3 className="text-lg font-medium text-text-primary">{t.history.emptyState}</h3>
             <p className="text-sm text-text-muted mt-2 max-w-[240px]">
-              {dict.history.emptyDescription}
+              {t.history.emptyDescription}
             </p>
           </div>
         ) : (
           <div className="space-y-8">
             {Object.entries(groupedTasks).map(([date, dateTasks], groupIndex) => (
-              <div 
-                key={date} 
+              <div
+                key={date}
                 className="animate-fade-in"
                 style={{ animationDelay: `${groupIndex * 100}ms` }}
               >
@@ -113,12 +115,12 @@ export default async function HistoryPage() {
                         <div className="flex-shrink-0 w-6 h-6 rounded-full bg-accent border-2 border-accent flex items-center justify-center">
                           <Check size={12} className="text-bg-primary" strokeWidth={3} />
                         </div>
-                        
+
                         <div className="flex-1 min-w-0">
                           <span className="text-[15px] font-medium leading-snug truncate block text-text-primary">
                             {task.title}
                           </span>
-                          
+
                           <div className="flex flex-wrap items-center gap-2 mt-1.5">
                             {hasTimeInfo && (
                               <span className="inline-flex items-center gap-1 text-[11px] text-text-muted font-mono">
@@ -128,7 +130,9 @@ export default async function HistoryPage() {
                               </span>
                             )}
                             {tagData && (
-                              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${tagData.bg} ${tagData.text}`}>
+                              <span
+                                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${tagData.bg} ${tagData.text}`}
+                              >
                                 {tagData.label}
                               </span>
                             )}

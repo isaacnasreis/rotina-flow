@@ -1,9 +1,14 @@
 "use client";
 
-import { createTask } from "@/actions/task";
 import { ArrowUp, Loader2 } from "lucide-react";
 import { useState, useRef, useCallback, useEffect, useTransition } from "react";
 import { toast } from "sonner";
+import { db } from "@/lib/db";
+import { syncOfflineTasks } from "@/lib/sync";
+
+interface QuickInputProps {
+  userId: string;
+}
 
 function getPlaceholder(): string {
   const hour = new Date().getHours();
@@ -13,7 +18,7 @@ function getPlaceholder(): string {
   return "Registre uma ideia rápida...";
 }
 
-export function QuickInput() {
+export function QuickInput({ userId }: QuickInputProps) {
   const [value, setValue] = useState("");
   const [placeholder, setPlaceholder] = useState("Adicione uma tarefa...");
   const [isPending, startTransition] = useTransition();
@@ -34,16 +39,33 @@ export function QuickInput() {
 
     setValue("");
     startTransition(async () => {
-      const result = await createTask(trimmed);
-      if (result?.error) {
-        toast.error(result.error);
+      try {
+        const taskId = crypto.randomUUID();
+        
+        // Grava IMEDIATAMENTE no banco local do celular/navegador (Offline-First)
+        await db.tasks.add({
+          id: taskId,
+          title: trimmed,
+          isCompleted: false,
+          category: "geral",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          userId,
+          syncStatus: "created"
+        });
+
+        // Tenta sincronizar com a nuvem em background
+        syncOfflineTasks();
+
+      } catch (error) {
+        toast.error("Erro ao salvar tarefa offline.");
         setValue(trimmed); // restaura em caso de erro
       }
     });
 
     // Mantém foco para entrada rápida em série
     inputRef.current?.focus();
-  }, [value, isPending]);
+  }, [value, isPending, userId]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {

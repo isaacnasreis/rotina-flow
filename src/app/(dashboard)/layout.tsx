@@ -1,15 +1,32 @@
-import { logout } from "@/actions/auth";
+"use client";
+
 import { ShareButton } from "@/components/features/ShareButton";
 import { Logo } from "@/components/ui/Logo";
 import { LogOut, Settings, History } from "lucide-react";
 import React from "react";
 import Link from "next/link";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { Capacitor } from '@capacitor/core';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      const API_URL = Capacitor.isNativePlatform() ? "https://rotina-flow.vercel.app" : "";
+      await fetch(`${API_URL}/api/auth/logout`, { method: "POST" });
+      localStorage.removeItem("userId");
+      router.replace("/login");
+    } catch (e) {
+      toast.error("Erro ao sair.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-bg-primary text-text-primary selection:bg-accent">
       <div className="relative z-10">
@@ -32,15 +49,13 @@ export default function DashboardLayout({
               <Settings size={18} />
             </Link>
             <div className="w-px h-5 bg-border-subtle mx-1" />
-            <form action={logout} className="flex items-center">
-              <button
-                type="submit"
-                className="text-text-muted hover:text-red-400 transition-colors cursor-pointer p-1.5 rounded-lg hover:bg-bg-card-hover"
-                title="Sair"
-              >
-                <LogOut size={18} />
-              </button>
-            </form>
+            <button
+              onClick={handleLogout}
+              className="text-text-muted hover:text-red-400 transition-colors cursor-pointer p-1.5 rounded-lg hover:bg-bg-card-hover"
+              title="Sair"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
         </nav>
 

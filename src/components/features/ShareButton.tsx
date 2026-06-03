@@ -1,6 +1,5 @@
 "use client";
 
-import { generateShareToken } from "@/actions/share";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy, Share2, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -31,9 +30,12 @@ export function ShareButton({
     setIsLoading(true);
     if (onClickCallback) onClickCallback();
     try {
-      const token = await generateShareToken();
-      const url = `${window.location.origin}/share/${token}`;
-      setShareUrl(url);
+      const res = await fetch("/api/share", { method: "POST" });
+      const data = await res.json();
+      if (data.token) {
+        const url = `${window.location.origin}/share/${data.token}`;
+        setShareUrl(url);
+      }
     } catch (error) {
       console.error("Erro ao gerar link", error);
     } finally {
