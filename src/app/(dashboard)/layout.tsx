@@ -19,7 +19,7 @@ export default function DashboardLayout({
   const handleLogout = async () => {
     try {
       const API_URL = Capacitor.isNativePlatform() ? "https://rotina-flow.vercel.app" : "";
-      await fetch(`${API_URL}/api/auth/logout`, { method: "POST" });
+      await fetch(`${API_URL}/api/auth/logout/`, { method: "POST" });
       localStorage.removeItem("userId");
       router.replace("/login");
     } catch (e) {

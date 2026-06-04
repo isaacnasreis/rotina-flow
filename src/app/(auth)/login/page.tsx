@@ -29,7 +29,7 @@ export default function LoginPage() {
       const pin = formData.get("pin") as string;
 
       const API_URL = Capacitor.isNativePlatform() ? "https://rotina-flow.vercel.app" : "";
-      const res = await fetch(`${API_URL}/api/auth/login`, {
+      const res = await fetch(`${API_URL}/api/auth/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, pin }),

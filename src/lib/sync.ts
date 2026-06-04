@@ -23,7 +23,7 @@ export async function syncOfflineTasks() {
     try {
       if (task.syncStatus === 'created') {
         // Enviar para a nuvem via API
-        await fetch(`${API_URL}/api/tasks`, {
+        await fetch(`${API_URL}/api/tasks/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(task),
@@ -33,7 +33,7 @@ export async function syncOfflineTasks() {
         await db.tasks.update(task.id, { syncStatus: 'synced' });
       } 
       else if (task.syncStatus === 'updated') {
-        await fetch(`${API_URL}/api/tasks/${task.id}`, {
+        await fetch(`${API_URL}/api/tasks/${task.id}/`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(task),
@@ -42,7 +42,7 @@ export async function syncOfflineTasks() {
         await db.tasks.update(task.id, { syncStatus: 'synced' });
       } 
       else if (task.syncStatus === 'deleted') {
-        await fetch(`${API_URL}/api/tasks/${task.id}`, {
+        await fetch(`${API_URL}/api/tasks/${task.id}/`, {
           method: 'DELETE',
         });
         
