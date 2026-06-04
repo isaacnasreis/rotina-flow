@@ -78,6 +78,9 @@ export function DashboardClient() {
   const pendingTasks = mappedTasks.filter((t) => !t.isCompleted);
   const completedTasks = mappedTasks.filter((t) => t.isCompleted);
 
+  const rolledOverTasks = pendingTasks.filter(t => new Date(t.createdAt) < startOfDay);
+  const todaysPendingTasks = pendingTasks.filter(t => new Date(t.createdAt) >= startOfDay);
+
   return (
     <>
       <section className="pt-8 pb-32 max-w-lg mx-auto px-4 md:px-0">
@@ -96,6 +99,53 @@ export function DashboardClient() {
           </div>
         </header>
 
+        {/* Guilt-Free Rollover Banner */}
+        {rolledOverTasks.length > 0 && (
+          <div className="mb-8 p-4 bg-accent/10 border border-accent/20 rounded-2xl animate-fade-in-up">
+            <div className="flex items-start gap-3">
+              <div className="text-accent text-xl mt-0.5">🍃</div>
+              <div className="flex-1">
+                <h3 className="text-text-primary font-medium text-sm">
+                  Olá! Algumas tarefas ficaram para trás.
+                </h3>
+                <p className="text-text-secondary text-xs mt-1 leading-relaxed">
+                  Tudo bem não dar conta de tudo! Você tem {rolledOverTasks.length} tarefas flexíveis de ontem. Deseja trazê-las para hoje ou simplesmente deixá-las ir?
+                </p>
+                <div className="flex items-center gap-2 mt-3">
+                  <button 
+                    onClick={async () => {
+                      for (const t of rolledOverTasks) {
+                        await db.tasks.update(t.id, { 
+                          createdAt: new Date(), 
+                          updatedAt: new Date(),
+                          syncStatus: 'updated'
+                        });
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-accent text-white text-xs font-medium rounded-lg hover:bg-accent-hover transition-colors"
+                  >
+                    Tentar Hoje
+                  </button>
+                  <button 
+                    onClick={async () => {
+                      for (const t of rolledOverTasks) {
+                        await db.tasks.update(t.id, { 
+                          isCompleted: true, 
+                          updatedAt: new Date(),
+                          syncStatus: 'updated'
+                        });
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-white/5 text-text-secondary hover:text-text-primary text-xs font-medium rounded-lg hover:bg-white/10 transition-colors"
+                  >
+                    Deixar Ir (Concluir)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Task List */}
         {totalCount === 0 && !localTasks ? (
            <div className="animate-pulse flex flex-col gap-4">
@@ -106,13 +156,13 @@ export function DashboardClient() {
           <EmptyState />
         ) : (
           <div className="space-y-1.5">
-            {pendingTasks.length > 0 && (
+            {todaysPendingTasks.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-4 px-1 flex items-center gap-2">
-                  {dict.dashboard.pending} ({pendingTasks.length})
+                  {dict.dashboard.pending} ({todaysPendingTasks.length})
                 </h2>
                 <div className="space-y-2">
-                  {pendingTasks.map((task, index) => (
+                  {todaysPendingTasks.map((task, index) => (
                     <TaskItem
                       key={task.id}
                       task={task as any}
@@ -133,7 +183,7 @@ export function DashboardClient() {
                     <TaskItem
                       key={task.id}
                       task={task as any}
-                      style={{ animationDelay: `${(pendingTasks.length + index) * 50}ms` }}
+                      style={{ animationDelay: `${(todaysPendingTasks.length + index) * 50}ms` }}
                     />
                   ))}
                 </div>
