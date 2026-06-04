@@ -117,3 +117,9 @@ export default async function SharedRoutinePage({ params }: SharePageProps) {
     </div>
   );
 }
+
+// Para a exportação estática do aplicativo mobile funcionar, informamos
+// ao Next.js que não há parâmetros estáticos pré-renderizados para essa página.
+export function generateStaticParams() {
+  return [];
+}
